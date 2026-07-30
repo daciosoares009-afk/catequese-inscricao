@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { jwtVerify } from "jose/jwt/verify";
 
-const protectedRoutes = ["/dashboard", "/catequizandos", "/responsaveis", "/turmas", "/encontros", "/presencas", "/relatorios", "/comunicados", "/sacramentos", "/usuarios", "/auditoria", "/configuracoes"];
+const protectedRoutes = ["/dashboard", "/catequizandos", "/responsaveis", "/turmas", "/encontros", "/presencas", "/relatorios", "/comunicados", "/notificacoes", "/sacramentos", "/usuarios", "/auditoria", "/configuracoes"];
 export async function middleware(request: NextRequest) {
   if (!protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route))) return NextResponse.next();
   const token = request.cookies.get("catequese_session")?.value;

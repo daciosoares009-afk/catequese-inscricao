@@ -12,7 +12,8 @@ export async function recordAttendance(meetingId: string, catechumenId: string, 
   if (!parsed.success) redirect(`/presencas/${meetingId}?erro=dados-invalidos`);
   const meeting = await prisma.meeting.findFirst({ where: { id: meetingId, deletedAt: null }, select: { id: true, classId: true, status: true } });
   if (!meeting || !(await canAccessClass(session, meeting.classId))) redirect(`/presencas/${meetingId}?erro=permissao`);
-  if (["CLOSED", "CANCELLED"].includes(meeting.status) && session.role === "CATECHIST") redirect(`/presencas/${meetingId}?erro=encerrado`);
+  if (meeting.status === "CANCELLED") redirect(`/presencas/${meetingId}?erro=cancelado`);
+  if (meeting.status === "CLOSED" && session.role === "CATECHIST") redirect(`/presencas/${meetingId}?erro=encerrado`);
   const enrollment = await prisma.enrollment.findFirst({ where: { catechumenId, classId: meeting.classId, status: "ACTIVE", deletedAt: null }, select: { id: true } });
   if (!enrollment) redirect(`/presencas/${meetingId}?erro=nao-matriculado`);
   const old = await prisma.attendance.findUnique({ where: { catechumenId_meetingId: { catechumenId, meetingId } } });

@@ -15,15 +15,17 @@
     "db:deploy:pooler": "tsx scripts/deploy-migrations.ts",
     "db:status": "prisma migrate status",
     "db:check": "tsx scripts/check-database.ts",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:import:catechumens": "tsx scripts/import-catechumens.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",
     "@zxing/browser": "^0.2.1",
     "bcryptjs": "^3.0.2",
-    "jose": "^6.1.0",
+    "jose": "^6.2.5",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.468.0",
-    "next": "^15.5.4",
+    "next": "^15.5.22",
     "pg": "^8.22.0",
     "qrcode": "^1.5.4",
     "react": "^19.1.1",
@@ -39,11 +41,16 @@
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
     "eslint": "^9.36.0",
-    "eslint-config-next": "^15.5.4",
-    "postcss": "^8.5.6",
+    "eslint-config-next": "^15.5.22",
+    "postcss": "^8.5.25",
     "prisma": "^6.16.2",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.20.6",
     "typescript": "^5.9.2"
+  },
+  "overrides": {
+    "postcss": "$postcss",
+    "sharp": "0.35.0",
+    "brace-expansion": "5.0.8"
   }
 }

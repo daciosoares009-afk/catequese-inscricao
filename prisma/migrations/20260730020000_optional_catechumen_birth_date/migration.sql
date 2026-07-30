@@ -1,0 +1,2 @@
+ALTER TABLE "Catechumen"
+ALTER COLUMN "birthDate" DROP NOT NULL;

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { clearSession, requireSession } from "@/lib/auth";
 import { roleLabel } from "@/lib/format";
+import { prisma } from "@/lib/prisma";
 
 const links = [
   ["/dashboard", "Visão geral", LayoutDashboard],
@@ -31,6 +32,7 @@ const links = [
   ["/sacramentos", "Sacramentos", Church],
   ["/relatorios", "Relatórios", BarChart3],
   ["/comunicados", "Comunicados", Megaphone],
+  ["/notificacoes", "Notificações", Bell],
   ["/usuarios", "Usuários", ShieldCheck],
   ["/auditoria", "Auditoria", QrCode],
   ["/configuracoes", "Configurações", Settings],
@@ -44,6 +46,9 @@ export default async function AppShell({
   current: string;
 }) {
   const session = await requireSession();
+  const unreadNotifications = await prisma.notification.count({
+    where: { userId: session.userId, readAt: null },
+  });
   const visible =
     session.role === "ADMIN"
       ? links
@@ -105,7 +110,7 @@ export default async function AppShell({
         <div className="faith-sidebar-footer">
           <Link href="/configuracoes" className="faith-settings">
             <Settings size={18} />
-            <span>Configurações</span>
+            <span>{session.role === "ADMIN" ? "Configurações" : "Minha conta"}</span>
           </Link>
           <div className="faith-user">
             <span className="avatar">{initials}</span>
@@ -125,9 +130,19 @@ export default async function AppShell({
       <main className="main faith-main">
         <header className="topbar faith-topbar">
           <div className="topbar-title">
-            <button className="icon-btn menu-trigger" aria-label="Abrir menu">
-              <Menu size={19} />
-            </button>
+            <details className="mobile-menu">
+              <summary className="icon-btn menu-trigger" aria-label="Abrir menu">
+                <Menu size={19} />
+              </summary>
+              <nav aria-label="Menu completo">
+                {visible.map(([href, label, Icon]) => (
+                  <Link key={href} href={href}>
+                    <Icon size={18} />
+                    <span>{label}</span>
+                  </Link>
+                ))}
+              </nav>
+            </details>
             <div>
               <small>Gestão pastoral</small>
               <strong>{currentLabel}</strong>
@@ -136,13 +151,14 @@ export default async function AppShell({
           <div className="top-actions">
             <span className="faith-view-label">Visualizar como</span>
             <span className="faith-role">{roleLabel[session.role]}</span>
-            <button
+            <Link
+              href="/notificacoes"
               className="icon-btn notification-btn"
-              aria-label="Notificações"
+              aria-label={`Notificações${unreadNotifications ? `, ${unreadNotifications} não lidas` : ""}`}
             >
               <Bell size={18} />
-              <i />
-            </button>
+              {unreadNotifications > 0 && <i />}
+            </Link>
             <div className="top-avatar">{initials}</div>
           </div>
         </header>

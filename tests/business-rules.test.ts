@@ -1,7 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { attendanceSchema, classSchema, meetingSchema } from "@/validations/schemas";
+import { attendanceSchema, catechumenSchema, classSchema, meetingSchema } from "@/validations/schemas";
 import { frequencySummary } from "@/utils/frequency";
+import {
+  clearLoginFailures,
+  loginRateLimit,
+  registerLoginFailure,
+} from "@/lib/login-rate-limit";
 
 test("frequência considera presente e atrasado como comparecimento", () => {
   assert.deepEqual(frequencySummary(["PRESENT", "LATE", "ABSENT", "JUSTIFIED"]), { total: 4, present: 2, absent: 2, rate: 50 });
@@ -29,4 +34,26 @@ test("encontro rejeita datas e horários inválidos", () => {
   const base = { classId: "c", date: "2026-02-01", startTime: "09:00", endTime: "10:30", theme: "A Palavra", status: "SCHEDULED" };
   assert.equal(meetingSchema.safeParse(base).success, true);
   assert.equal(meetingSchema.safeParse({ ...base, startTime: "29:99" }).success, false);
+  assert.equal(meetingSchema.safeParse({ ...base, endTime: "08:30" }).success, false);
+});
+
+test("catequizando pode ser cadastrado somente com o nome", () => {
+  const parsed = catechumenSchema.safeParse({ fullName: "  Ana Maria  " });
+  assert.equal(parsed.success, true);
+  if (parsed.success) {
+    assert.equal(parsed.data.fullName, "Ana Maria");
+    assert.equal(parsed.data.status, "WAITING");
+  }
+});
+
+test("login bloqueia após cinco tentativas inválidas", () => {
+  const email = `teste-${Date.now()}@example.com`;
+  const ip = "127.0.0.99";
+  clearLoginFailures(email, ip);
+  for (let index = 0; index < 5; index += 1) {
+    registerLoginFailure(email, ip);
+  }
+  assert.equal(loginRateLimit(email, ip).blocked, true);
+  clearLoginFailures(email, ip);
+  assert.equal(loginRateLimit(email, ip).blocked, false);
 });

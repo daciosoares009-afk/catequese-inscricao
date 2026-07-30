@@ -1,3 +1,51 @@
-import AppShell from "@/components/app-shell";import {PageHeader} from "@/components/page-header";import {prisma} from "@/lib/prisma";import {createCatechumen} from "../actions";import Link from "next/link";
-export const dynamic="force-dynamic";
-export default async function Page({searchParams}:{searchParams:Promise<{erro?:string}>}){const [parishes,communities,p]=await Promise.all([prisma.parish.findMany({where:{deletedAt:null}}),prisma.community.findMany({where:{deletedAt:null}}),searchParams]);return <AppShell current="/catequizandos"><PageHeader title="Novo catequizando" description="Cadastre os dados pessoais e pastorais."/>{(await p).erro&&<div className="alert error">Revise os campos obrigatórios.</div>}<form action={createCatechumen} className="card form-card"><section className="form-section"><h2>Dados pessoais</h2><div className="form-grid"><div className="field full"><label>Nome completo *</label><input name="fullName" required minLength={3}/></div><div className="field"><label>Data de nascimento *</label><input name="birthDate" type="date" required/></div><div className="field"><label>Telefone</label><input name="phone" placeholder="(00) 00000-0000"/></div><div className="field full"><label>Endereço</label><input name="address"/></div><div className="field"><label>Bairro</label><input name="district"/></div><div className="field"><label>Cidade</label><input name="city"/></div></div></section><section className="form-section"><h2>Vínculo pastoral</h2><div className="form-grid"><div className="field"><label>Paróquia</label><select name="parishId"><option value="">Selecione</option>{parishes.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></div><div className="field"><label>Comunidade</label><select name="communityId"><option value="">Selecione</option>{communities.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></div><div className="field"><label>Situação</label><select name="status" defaultValue="WAITING"><option value="WAITING">Aguardando turma</option><option value="ACTIVE">Ativo</option><option value="INACTIVE">Inativo</option><option value="TRANSFERRED">Transferido</option><option value="DROPOUT">Desistente</option><option value="COMPLETED">Concluído</option></select></div><div className="field full"><label>Observações</label><textarea name="notes"/></div></div></section><div className="form-actions"><Link href="/catequizandos" className="btn btn-secondary">Cancelar</Link><button className="btn btn-primary">Salvar catequizando</button></div></form></AppShell>}
+import Link from "next/link";
+import AppShell from "@/components/app-shell";
+import { PageHeader } from "@/components/page-header";
+import { createCatechumen } from "../actions";
+
+export default async function NewCatechumenPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ erro?: string }>;
+}) {
+  const query = await searchParams;
+
+  return (
+    <AppShell current="/catequizandos">
+      <PageHeader
+        title="Novo catequizando"
+        description="Informe o nome para gerar o QR Code individual."
+      />
+      {query.erro && (
+        <div className="alert error">Informe o nome completo do catequizando.</div>
+      )}
+      <form action={createCatechumen} className="card form-card">
+        <section className="form-section">
+          <h2>Identificação</h2>
+          <div className="form-grid">
+            <div className="field full">
+              <label htmlFor="fullName">Nome completo *</label>
+              <input
+                id="fullName"
+                name="fullName"
+                autoComplete="name"
+                autoFocus
+                required
+                minLength={3}
+                maxLength={160}
+                placeholder="Digite o nome completo"
+              />
+              <small>O QR Code será criado automaticamente após salvar.</small>
+            </div>
+          </div>
+        </section>
+        <div className="form-actions">
+          <Link href="/catequizandos" className="btn btn-secondary">
+            Cancelar
+          </Link>
+          <button className="btn btn-primary">Salvar e gerar QR Code</button>
+        </div>
+      </form>
+    </AppShell>
+  );
+}

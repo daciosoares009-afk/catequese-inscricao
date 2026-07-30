@@ -16,7 +16,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const [classes, rows, attendances] = await Promise.all([
     prisma.class.findMany({ where: { deletedAt: null, ...classScope }, orderBy: { name: "asc" } }),
     prisma.enrollment.findMany({ where: { status: "ACTIVE", classId: query.classId || undefined, class: classScope }, include: { catechumen: true, class: true }, orderBy: { catechumen: { fullName: "asc" } } }),
-    prisma.attendance.findMany({ where: { classId: query.classId || undefined, class: classScope }, select: { catechumenId: true, classId: true, status: true } }),
+    prisma.attendance.findMany({ where: { classId: query.classId || undefined, class: classScope, meeting: { status: "CLOSED", deletedAt: null } }, select: { catechumenId: true, classId: true, status: true } }),
   ]);
   return <AppShell current="/relatorios"><PageHeader title="Relatórios" description="Frequência consolidada por aluno e turma" action={<div style={{ display: "flex", gap: 8 }}><a className="btn btn-secondary" href={`/api/relatorios/frequencia${query.classId ? `?classId=${query.classId}` : ""}`}><Download size={15} />CSV</a><PrintButton label="Imprimir" /></div>} />
     <form className="toolbar no-print"><select className="btn btn-secondary" name="classId" defaultValue={query.classId || ""}><option value="">Todas as turmas</option>{classes.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select><button className="btn btn-primary">Aplicar filtro</button></form>

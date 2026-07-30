@@ -25,9 +25,99 @@ export async function closeMeeting(id: string) {
   const meeting = await prisma.meeting.findFirst({ where: { id, deletedAt: null }, select: { id: true, classId: true, status: true } });
   if (!meeting || !(await canAccessClass(session, meeting.classId))) redirect("/encontros?erro=sem-permissao");
   if (meeting.status === "CANCELLED") redirect(`/presencas/${id}?erro=cancelado`);
-  await prisma.$transaction([
-    prisma.meeting.update({ where: { id }, data: { status: "CLOSED" } }),
-    prisma.auditLog.create({ data: { userId: session.userId, action: "CLOSE", entity: "Meeting", entityId: id, before: { status: meeting.status }, after: { status: "CLOSED" } } }),
-  ]);
+  await prisma.$transaction(async tx => {
+    const enrollments = await tx.enrollment.findMany({
+      where: { classId: meeting.classId, status: "ACTIVE", deletedAt: null },
+      select: { catechumenId: true },
+    });
+    const registered = await tx.attendance.findMany({
+      where: { meetingId: id },
+      select: { catechumenId: true },
+    });
+    const registeredIds = new Set(registered.map(item => item.catechumenId));
+    const missing = enrollments.filter(item => !registeredIds.has(item.catechumenId));
+
+    if (missing.length) {
+      await tx.attendance.createMany({
+        data: missing.map(item => ({
+          catechumenId: item.catechumenId,
+          classId: meeting.classId,
+          meetingId: id,
+          status: "ABSENT" as const,
+          method: "GROUP" as const,
+          recordedById: session.userId,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    await tx.meeting.update({ where: { id }, data: { status: "CLOSED" } });
+    await tx.auditLog.create({
+      data: {
+        userId: session.userId,
+        action: "CLOSE",
+        entity: "Meeting",
+        entityId: id,
+        before: { status: meeting.status },
+        after: { status: "CLOSED", automaticAbsences: missing.length },
+      },
+    });
+  });
   revalidatePath("/encontros"); revalidatePath(`/presencas/${id}`);
+}
+
+export async function cancelMeeting(id: string) {
+  const session = await requireSession(["ADMIN", "COORDINATOR"]);
+  const meeting = await prisma.meeting.findFirst({
+    where: { id, deletedAt: null },
+    select: { id: true, classId: true, status: true },
+  });
+  if (!meeting || !(await canAccessClass(session, meeting.classId))) {
+    redirect("/encontros?erro=sem-permissao");
+  }
+  if (meeting.status === "CLOSED") redirect("/encontros?erro=encerrado");
+  await prisma.$transaction([
+    prisma.meeting.update({ where: { id }, data: { status: "CANCELLED" } }),
+    prisma.auditLog.create({
+      data: {
+        userId: session.userId,
+        action: "CANCEL",
+        entity: "Meeting",
+        entityId: id,
+        before: { status: meeting.status },
+        after: { status: "CANCELLED" },
+      },
+    }),
+  ]);
+  revalidatePath("/encontros");
+  redirect("/encontros?sucesso=cancelado");
+}
+
+export async function reopenMeeting(id: string) {
+  const session = await requireSession(["ADMIN", "COORDINATOR"]);
+  const meeting = await prisma.meeting.findFirst({
+    where: { id, deletedAt: null },
+    select: { id: true, classId: true, status: true },
+  });
+  if (!meeting || !(await canAccessClass(session, meeting.classId))) {
+    redirect("/encontros?erro=sem-permissao");
+  }
+  if (!["CLOSED", "CANCELLED"].includes(meeting.status)) {
+    redirect("/encontros?erro=situacao");
+  }
+  await prisma.$transaction([
+    prisma.meeting.update({ where: { id }, data: { status: "IN_PROGRESS" } }),
+    prisma.auditLog.create({
+      data: {
+        userId: session.userId,
+        action: "REOPEN",
+        entity: "Meeting",
+        entityId: id,
+        before: { status: meeting.status },
+        after: { status: "IN_PROGRESS" },
+      },
+    }),
+  ]);
+  revalidatePath("/encontros");
+  redirect(`/presencas/${id}`);
 }

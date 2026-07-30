@@ -4,7 +4,11 @@ import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 const prisma=new PrismaClient();
 async function main(){
-  const passwordHash=await bcrypt.hash("Catequese@2026",12);
+  const initialPassword = process.env.ADMIN_INITIAL_PASSWORD;
+  if (!initialPassword || initialPassword.length < 12) {
+    throw new Error("ADMIN_INITIAL_PASSWORD deve ter pelo menos 12 caracteres.");
+  }
+  const passwordHash=await bcrypt.hash(initialPassword,12);
   const admin=await prisma.user.upsert({where:{email:"admin@catequesepresente.com"},update:{},create:{name:"Ana Administradora",email:"admin@catequesepresente.com",passwordHash,role:Role.ADMIN}});
   const coordinator=await prisma.user.upsert({where:{email:"coordenador@catequesepresente.com"},update:{},create:{name:"Paulo Coordenador",email:"coordenador@catequesepresente.com",passwordHash,role:Role.COORDINATOR}});
   const cat1=await prisma.user.upsert({where:{email:"maria@catequesepresente.com"},update:{},create:{name:"Maria Oliveira",email:"maria@catequesepresente.com",passwordHash,role:Role.CATECHIST,catechist:{create:{phone:"85999990001"}}},include:{catechist:true}});
@@ -34,6 +38,6 @@ async function main(){
   for(let i=0;i<2;i++)await prisma.attendance.upsert({where:{catechumenId_meetingId:{catechumenId:students[i].id,meetingId:meeting.id}},update:{},create:{catechumenId:students[i].id,classId:cls1.id,meetingId:meeting.id,status:i===0?AttendanceStatus.PRESENT:AttendanceStatus.JUSTIFIED,method:AttendanceMethod.MANUAL,recordedById:coordinator.id}});
   await prisma.announcement.findFirst({where:{title:"Missa das famílias"}})||await prisma.announcement.create({data:{title:"Missa das famílias",message:"Convidamos todas as famílias para a celebração deste domingo às 18h.",recipientType:"ALL",channel:"WHATSAPP",priority:"NORMAL",status:"PENDING"}});
   await prisma.auditLog.create({data:{userId:admin.id,action:"SEED",entity:"System",after:{message:"Dados iniciais instalados"}}});
-  console.log("Seed concluído. Login: admin@catequesepresente.com / Catequese@2026");
+  console.log("Seed concluído. A senha inicial foi lida de ADMIN_INITIAL_PASSWORD.");
 }
 main().catch(e=>{console.error(e);process.exit(1)}).finally(()=>prisma.$disconnect());

@@ -39,6 +39,22 @@ export default async function DashboardPage() {
   const session = await requireSession();
   const classFilter = catechistClassFilter(session);
   const catechumenFilter = catechistCatechumenFilter(session);
+  const localDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Fortaleza",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  const todayStart = new Date(`${localDate}T00:00:00.000Z`);
+  const accessibleClassIds =
+    session.role === "CATECHIST"
+      ? (
+          await prisma.class.findMany({
+            where: { deletedAt: null, ...classFilter },
+            select: { id: true },
+          })
+        ).map(item => item.id)
+      : [];
 
   const [
     students,
@@ -56,13 +72,14 @@ export default async function DashboardPage() {
       where: { deletedAt: null, status: "ACTIVE", ...classFilter },
     }),
     prisma.attendance.findMany({
-      where: { class: classFilter },
-      select: { catechumenId: true, classId: true, status: true },
+      where: { class: classFilter, meeting: { status: "CLOSED", deletedAt: null } },
+      select: { catechumenId: true, classId: true, status: true, meeting: { select: { date: true } } },
     }),
     prisma.meeting.findMany({
       where: {
         deletedAt: null,
-        date: { gte: new Date() },
+        date: { gte: todayStart },
+        status: { in: ["SCHEDULED", "IN_PROGRESS"] },
         class: classFilter,
       },
       include: { class: true },
@@ -86,7 +103,13 @@ export default async function DashboardPage() {
       where: {
         deletedAt: null,
         ...(session.role === "CATECHIST"
-          ? { recipientType: { in: ["ALL", "CATECHISTS"] as const } }
+          ? {
+              OR: [
+                { recipientType: "ALL" },
+                { recipientType: "CATECHISTS" },
+                { recipientType: "CLASS", recipientId: { in: accessibleClassIds } },
+              ],
+            }
           : {}),
       },
       orderBy: { createdAt: "desc" },
@@ -142,8 +165,27 @@ export default async function DashboardPage() {
     },
   ];
 
-  const chartValues = [82, 75, 88, 69, 91, 84, rate];
-  const chartLabels = ["Mai", "Jun", "Jul", "Ago", "Set", "Out", "Atual"];
+  const currentMonth = new Date(todayStart);
+  const chartMonths = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(Date.UTC(
+      currentMonth.getUTCFullYear(),
+      currentMonth.getUTCMonth() - (6 - index),
+      1,
+    ));
+    return {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth(),
+      label: monthFormatter.format(date).replace(".", ""),
+    };
+  });
+  const chartValues = chartMonths.map(({ year, month }) => {
+    const own = attendance.filter(item =>
+      item.meeting.date.getUTCFullYear() === year &&
+      item.meeting.date.getUTCMonth() === month
+    );
+    return frequencySummary(own.map(item => item.status)).rate;
+  });
+  const chartLabels = chartMonths.map(item => item.label);
   const today = weekdayFormatter.format(new Date());
 
   return (
@@ -224,8 +266,7 @@ export default async function DashboardPage() {
             ))}
           </div>
           <p className="faith-chart-note">
-            Maio a outubro usam dados demonstrativos. “Atual” reflete os
-            registros reais.
+            Dados reais dos encontros encerrados nos últimos sete meses.
           </p>
         </section>
 
@@ -334,7 +375,11 @@ export default async function DashboardPage() {
                     Para:{" "}
                     {announcement.recipientType === "CATECHISTS"
                       ? "Catequistas"
-                      : "Todos"}
+                      : announcement.recipientType === "CLASS"
+                        ? "Turma"
+                        : announcement.recipientType === "COMMUNITY"
+                          ? "Comunidade"
+                          : "Todos"}
                   </small>
                 </div>
               </article>

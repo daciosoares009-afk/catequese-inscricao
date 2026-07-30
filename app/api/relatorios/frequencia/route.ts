@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const classScope = catechistClassFilter(session);
   const [rows, attendances] = await Promise.all([
     prisma.enrollment.findMany({ where: { status: "ACTIVE", classId, class: classScope }, include: { catechumen: true, class: true } }),
-    prisma.attendance.findMany({ where: { classId, class: classScope }, select: { catechumenId: true, classId: true, status: true } }),
+    prisma.attendance.findMany({ where: { classId, class: classScope, meeting: { status: "CLOSED", deletedAt: null } }, select: { catechumenId: true, classId: true, status: true } }),
   ]);
   const lines = [["Catequizando", "Turma", "Presenças", "Faltas", "Frequência"], ...rows.map(enrollment => { const own = attendances.filter(a => a.catechumenId === enrollment.catechumenId && a.classId === enrollment.classId); const summary = frequencySummary(own.map(a => a.status)); return [enrollment.catechumen.fullName, enrollment.class.name, String(summary.present), String(summary.absent), `${summary.rate}%`]; })];
   const csv = "\uFEFF" + lines.map(row => row.map(value => `"${value.replaceAll('"', '""')}"`).join(";")).join("\n");

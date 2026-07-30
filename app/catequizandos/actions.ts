@@ -11,12 +11,14 @@ export async function createCatechumen(formData: FormData) {
   const parsed = catechumenSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) redirect("/catequizandos/novo?erro=dados-invalidos");
   const data = parsed.data;
-  if (data.communityId) {
-    const community = await prisma.community.findFirst({ where: { id: data.communityId, parishId: data.parishId || undefined, deletedAt: null }, select: { id: true, parishId: true } });
-    if (!community || (data.parishId && community.parishId !== data.parishId)) redirect("/catequizandos/novo?erro=comunidade-invalida");
-  }
   const item = await prisma.$transaction(async tx => {
-    const created = await tx.catechumen.create({ data: { ...data, parishId: data.parishId || null, communityId: data.communityId || null, qrCode: { create: { token: randomBytes(32).toString("base64url") } } } });
+    const created = await tx.catechumen.create({
+      data: {
+        fullName: data.fullName,
+        status: data.status,
+        qrCode: { create: { token: randomBytes(32).toString("base64url") } },
+      },
+    });
     await tx.auditLog.create({ data: { userId: session.userId, action: "CREATE", entity: "Catechumen", entityId: created.id, after: { fullName: created.fullName, status: created.status, communityId: created.communityId } } });
     return created;
   });
@@ -34,6 +36,39 @@ export async function archiveCatechumen(id: string) {
     prisma.auditLog.create({ data: { userId: session.userId, action: "SOFT_DELETE", entity: "Catechumen", entityId: id, before: { fullName: before.fullName, status: before.status }, after: { status: "INACTIVE" } } }),
   ]);
   revalidatePath("/catequizandos");
+  redirect("/catequizandos?sucesso=arquivado");
+}
+
+export async function updateCatechumenName(id: string, formData: FormData) {
+  const session = await requireSession(["ADMIN", "COORDINATOR"]);
+  const parsed = catechumenSchema.pick({ fullName: true }).safeParse(
+    Object.fromEntries(formData),
+  );
+  if (!parsed.success) redirect(`/catequizandos/${id}?erro=nome-invalido`);
+  const before = await prisma.catechumen.findFirst({
+    where: { id, deletedAt: null },
+    select: { fullName: true },
+  });
+  if (!before) redirect("/catequizandos?erro=nao-encontrado");
+  await prisma.$transaction([
+    prisma.catechumen.update({
+      where: { id },
+      data: { fullName: parsed.data.fullName },
+    }),
+    prisma.auditLog.create({
+      data: {
+        userId: session.userId,
+        action: "UPDATE",
+        entity: "Catechumen",
+        entityId: id,
+        before,
+        after: { fullName: parsed.data.fullName },
+      },
+    }),
+  ]);
+  revalidatePath(`/catequizandos/${id}`);
+  revalidatePath("/catequizandos");
+  redirect(`/catequizandos/${id}?sucesso=atualizado`);
 }
 
 export async function regenerateQr(id: string) {

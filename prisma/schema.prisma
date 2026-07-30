@@ -142,7 +142,7 @@ model Catechumen {
   id                 String               @id @default(cuid())
   fullName           String
   photoUrl           String?
-  birthDate          DateTime
+  birthDate          DateTime?
   phone              String?
   address            String?
   district           String?

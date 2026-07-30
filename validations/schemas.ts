@@ -1,7 +1,10 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({ email: z.email("E-mail inválido"), password: z.string().min(6, "Senha inválida") });
-export const catechumenSchema = z.object({ fullName: z.string().min(3), birthDate: z.coerce.date(), phone: z.string().optional(), city: z.string().optional(), district: z.string().optional(), address: z.string().optional(), communityId: z.string().optional(), parishId: z.string().optional(), status: z.enum(["ACTIVE", "COMPLETED", "TRANSFERRED", "DROPOUT", "WAITING", "INACTIVE"]), notes: z.string().optional() });
+export const catechumenSchema = z.object({
+  fullName: z.string().trim().min(3, "Informe o nome completo").max(160),
+  status: z.enum(["ACTIVE", "COMPLETED", "TRANSFERRED", "DROPOUT", "WAITING", "INACTIVE"]).default("WAITING"),
+});
 export const guardianSchema = z.object({ fullName: z.string().min(3), phone: z.string().min(8), whatsapp: z.string().optional(), email: z.union([z.email(), z.literal("")]).optional(), relationship: z.string().min(2), catechumenId: z.string().optional(), allowMessages: z.coerce.boolean().default(false), allowImageUse: z.coerce.boolean().default(false) });
 
 export const classSchema = z.object({
@@ -22,6 +25,14 @@ export const meetingSchema = z.object({
   endTime: z.union([z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/), z.literal("")]).optional(),
   theme: z.string().trim().min(3).max(160), content: z.string().trim().max(5000).optional(), notes: z.string().trim().max(2000).optional(),
   status: z.enum(["SCHEDULED", "IN_PROGRESS"]),
+}).superRefine((data, ctx) => {
+  if (data.endTime && data.endTime <= data.startTime) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["endTime"],
+      message: "O término deve ser posterior ao início",
+    });
+  }
 });
 
 export const attendanceSchema = z.object({
