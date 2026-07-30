@@ -1,0 +1,448 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  COORDINATOR
+  CATECHIST
+}
+
+enum PersonStatus {
+  ACTIVE
+  COMPLETED
+  TRANSFERRED
+  DROPOUT
+  WAITING
+  INACTIVE
+}
+
+enum ClassStatus {
+  ACTIVE
+  PLANNED
+  CLOSED
+  CANCELLED
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  CLOSED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  JUSTIFIED
+  LATE
+  LEFT_EARLY
+}
+
+enum AttendanceMethod {
+  QR_CODE
+  MANUAL
+  GROUP
+  CORRECTION
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum Channel {
+  WHATSAPP
+  EMAIL
+  INTERNAL
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  ERROR
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  TRANSFERRED
+  DROPOUT
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  passwordHash String
+  role         Role         @default(CATECHIST)
+  active       Boolean      @default(true)
+  catechist    Catechist?
+  attendances  Attendance[]
+  meetings     Meeting[]    @relation("MeetingOwner")
+  auditLogs    AuditLog[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+
+  @@index([role, active])
+}
+
+model Parish {
+  id          String       @id @default(cuid())
+  name        String
+  city        String?
+  logoUrl     String?
+  communities Community[]
+  classes     Class[]
+  catechumens Catechumen[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+
+  @@unique([name, city])
+}
+
+model Community {
+  id          String       @id @default(cuid())
+  name        String
+  parishId    String
+  parish      Parish       @relation(fields: [parishId], references: [id])
+  classes     Class[]
+  catechumens Catechumen[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+
+  @@unique([parishId, name])
+  @@index([parishId])
+}
+
+model Catechist {
+  id        String           @id @default(cuid())
+  userId    String           @unique
+  phone     String?
+  user      User             @relation(fields: [userId], references: [id])
+  classes   ClassCatechist[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  deletedAt DateTime?
+}
+
+model Catechumen {
+  id                 String               @id @default(cuid())
+  fullName           String
+  photoUrl           String?
+  birthDate          DateTime
+  phone              String?
+  address            String?
+  district           String?
+  city               String?
+  parishId           String?
+  communityId        String?
+  status             PersonStatus         @default(WAITING)
+  notes              String?
+  joinedAt           DateTime             @default(now())
+  baptismDate        DateTime?
+  baptismParish      String?
+  baptismBook        String?
+  baptismPage        String?
+  baptismRecord      String?
+  eucharistDate      DateTime?
+  confirmationDate   DateTime?
+  parish             Parish?              @relation(fields: [parishId], references: [id])
+  community          Community?           @relation(fields: [communityId], references: [id])
+  guardians          CatechumenGuardian[]
+  enrollments        Enrollment[]
+  attendances        Attendance[]
+  sacramentalHistory SacramentalHistory[]
+  documents          Document[]
+  qrCode             QRCodeToken?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  deletedAt          DateTime?
+
+  @@index([fullName])
+  @@index([status, communityId])
+}
+
+model Guardian {
+  id               String               @id @default(cuid())
+  fullName         String
+  cpf              String?              @unique
+  phone            String
+  whatsapp         String?
+  email            String?
+  address          String?
+  emergencyContact String?
+  allowMessages    Boolean              @default(true)
+  allowImageUse    Boolean              @default(false)
+  notes            String?
+  catechumens      CatechumenGuardian[]
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  deletedAt        DateTime?
+
+  @@index([fullName])
+}
+
+model CatechumenGuardian {
+  catechumenId String
+  guardianId   String
+  relationship String
+  isPrimary    Boolean    @default(false)
+  isEmergency  Boolean    @default(false)
+  catechumen   Catechumen @relation(fields: [catechumenId], references: [id])
+  guardian     Guardian   @relation(fields: [guardianId], references: [id])
+
+  @@id([catechumenId, guardianId])
+  @@index([guardianId])
+}
+
+model Sacrament {
+  id          String               @id @default(cuid())
+  name        String               @unique
+  description String?
+  active      Boolean              @default(true)
+  stages      Stage[]
+  classes     Class[]
+  history     SacramentalHistory[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  deletedAt   DateTime?
+}
+
+model Stage {
+  id          String               @id @default(cuid())
+  name        String
+  order       Int                  @default(0)
+  sacramentId String
+  sacrament   Sacrament            @relation(fields: [sacramentId], references: [id])
+  classes     Class[]
+  history     SacramentalHistory[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  deletedAt   DateTime?
+
+  @@unique([sacramentId, name])
+  @@index([sacramentId, order])
+}
+
+model Class {
+  id            String           @id @default(cuid())
+  name          String
+  year          Int
+  parishId      String
+  communityId   String
+  sacramentId   String
+  stageId       String
+  weekday       Int
+  startTime     String
+  location      String
+  startsAt      DateTime
+  expectedEndAt DateTime?
+  capacity      Int              @default(25)
+  status        ClassStatus      @default(PLANNED)
+  parish        Parish           @relation(fields: [parishId], references: [id])
+  community     Community        @relation(fields: [communityId], references: [id])
+  sacrament     Sacrament        @relation(fields: [sacramentId], references: [id])
+  stage         Stage            @relation(fields: [stageId], references: [id])
+  catechists    ClassCatechist[]
+  enrollments   Enrollment[]
+  meetings      Meeting[]
+  attendances   Attendance[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  deletedAt     DateTime?
+
+  @@unique([communityId, name, year])
+  @@index([status, year])
+}
+
+model ClassCatechist {
+  classId     String
+  catechistId String
+  isPrimary   Boolean   @default(false)
+  class       Class     @relation(fields: [classId], references: [id])
+  catechist   Catechist @relation(fields: [catechistId], references: [id])
+
+  @@id([classId, catechistId])
+  @@index([catechistId])
+}
+
+model Enrollment {
+  id           String           @id @default(cuid())
+  catechumenId String
+  classId      String
+  enrolledAt   DateTime         @default(now())
+  endedAt      DateTime?
+  status       EnrollmentStatus @default(ACTIVE)
+  notes        String?
+  catechumen   Catechumen       @relation(fields: [catechumenId], references: [id])
+  class        Class            @relation(fields: [classId], references: [id])
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  deletedAt    DateTime?
+
+  @@unique([catechumenId, classId])
+  @@index([classId, status])
+  @@index([catechumenId, status])
+}
+
+model Meeting {
+  id            String        @id @default(cuid())
+  classId       String
+  date          DateTime
+  startTime     String
+  endTime       String?
+  theme         String
+  content       String?
+  notes         String?
+  responsibleId String
+  status        MeetingStatus @default(SCHEDULED)
+  class         Class         @relation(fields: [classId], references: [id])
+  responsible   User          @relation("MeetingOwner", fields: [responsibleId], references: [id])
+  attendances   Attendance[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+
+  @@index([classId, date])
+}
+
+model Attendance {
+  id            String           @id @default(cuid())
+  catechumenId  String
+  classId       String
+  meetingId     String
+  recordedAt    DateTime         @default(now())
+  status        AttendanceStatus
+  method        AttendanceMethod
+  recordedById  String
+  justification String?
+  notes         String?
+  catechumen    Catechumen       @relation(fields: [catechumenId], references: [id])
+  class         Class            @relation(fields: [classId], references: [id])
+  meeting       Meeting          @relation(fields: [meetingId], references: [id])
+  recordedBy    User             @relation(fields: [recordedById], references: [id])
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([catechumenId, meetingId])
+  @@index([classId, recordedAt])
+  @@index([status])
+}
+
+model SacramentalHistory {
+  id           String     @id @default(cuid())
+  catechumenId String
+  sacramentId  String
+  stageId      String?
+  occurredAt   DateTime
+  parishName   String?
+  notes        String?
+  catechumen   Catechumen @relation(fields: [catechumenId], references: [id])
+  sacrament    Sacrament  @relation(fields: [sacramentId], references: [id])
+  stage        Stage?     @relation(fields: [stageId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+
+  @@index([catechumenId, occurredAt])
+}
+
+model Announcement {
+  id            String            @id @default(cuid())
+  title         String
+  message       String
+  recipientType String
+  recipientId   String?
+  sendAt        DateTime?
+  channel       Channel
+  priority      Priority          @default(NORMAL)
+  status        DeliveryStatus    @default(PENDING)
+  deliveries    MessageDelivery[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
+
+  @@index([status, sendAt])
+}
+
+model MessageDelivery {
+  id             String         @id @default(cuid())
+  announcementId String
+  recipient      String
+  status         DeliveryStatus @default(PENDING)
+  sentAt         DateTime?
+  error          String?
+  announcement   Announcement   @relation(fields: [announcementId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([announcementId, status])
+}
+
+model Document {
+  id           String     @id @default(cuid())
+  catechumenId String
+  name         String
+  type         String
+  url          String
+  verified     Boolean    @default(false)
+  catechumen   Catechumen @relation(fields: [catechumenId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+
+  @@index([catechumenId, type])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  before    Json?
+  after     Json?
+  ip        String?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String?
+  title     String
+  message   String
+  type      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+}
+
+model QRCodeToken {
+  id           String     @id @default(cuid())
+  catechumenId String     @unique
+  token        String     @unique @db.VarChar(128)
+  active       Boolean    @default(true)
+  generatedAt  DateTime   @default(now())
+  expiresAt    DateTime?
+  catechumen   Catechumen @relation(fields: [catechumenId], references: [id])
+
+  @@index([token, active])
+}

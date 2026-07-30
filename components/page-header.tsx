@@ -1,0 +1,1 @@
+export function PageHeader({ title, description, action }: { title: string; description: string; action?: React.ReactNode }) { return <div className="page-head"><div className="page-title-wrap"><span className="page-kicker">Gestão pastoral</span><h1>{title}</h1><p>{description}</p></div>{action && <div className="page-action">{action}</div>}</div>; }

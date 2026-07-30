@@ -1,0 +1,3 @@
+export const formatDate = (value: Date | string) => new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(value));
+export const roleLabel = { ADMIN: "Administrador", COORDINATOR: "Coordenador", CATECHIST: "Catequista" } as const;
+export const statusLabel: Record<string, string> = { ACTIVE: "Ativo", COMPLETED: "Concluído", TRANSFERRED: "Transferido", DROPOUT: "Desistente", WAITING: "Aguardando turma", INACTIVE: "Inativo", PLANNED: "Planejada", CLOSED: "Encerrada", CANCELLED: "Cancelada", SCHEDULED: "Agendado", IN_PROGRESS: "Em andamento", PRESENT: "Presente", ABSENT: "Ausente", JUSTIFIED: "Justificada", LATE: "Atrasado", LEFT_EARLY: "Saiu antes" };
