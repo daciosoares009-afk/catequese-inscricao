@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { CheckCircle2, QrCode } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import AppShell from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
@@ -8,7 +8,8 @@ import { requireSession } from "@/lib/auth";
 import { canAccessClass } from "@/lib/access";
 import { formatDate } from "@/lib/format";
 import { closeMeeting } from "@/app/encontros/actions";
-import { recordAttendance, registerByToken } from "../actions";
+import { recordAttendance } from "../actions";
+import { QrCameraReader } from "@/components/qr-camera-reader";
 
 export const dynamic = "force-dynamic";
 export default async function AttendancePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
@@ -25,7 +26,7 @@ export default async function AttendancePage({ params, searchParams }: { params:
     <PageHeader title="Chamada do encontro" description={`${meeting.theme} • ${meeting.class.name} • ${formatDate(meeting.date)}`} action={meeting.status !== "CLOSED" ? <form action={closeMeeting.bind(null, id)}><button className="btn btn-secondary">Encerrar encontro</button></form> : <StatusBadge status="CLOSED" />} />
     {query.sucesso && <div className="alert success"><CheckCircle2 size={16} /> Presença de {query.sucesso} confirmada.</div>}{query.erro && <div className="alert error">{errors[query.erro] || "Não foi possível concluir a operação."}</div>}
     <div className="grid-stats" style={{ marginBottom: 18 }}><div className="card stat"><div className="stat-label">Presentes</div><div className="stat-value">{present}</div></div><div className="card stat"><div className="stat-label">Total da turma</div><div className="stat-value">{total}</div></div><div className="card stat"><div className="stat-label">Frequência</div><div className="stat-value">{total ? Math.round(present / total * 100) : 0}%</div></div><div className="card stat"><div className="stat-label">Sem registro</div><div className="stat-value">{total - meeting.attendances.length}</div></div></div>
-    {!locked && <section className="card form-card" style={{ marginBottom: 18 }}><div style={{ display: "flex", gap: 15, alignItems: "center", flexWrap: "wrap" }}><div className="stat-icon"><QrCode size={21} /></div><div style={{ flex: 1, minWidth: 200 }}><strong>Leitura por QR Code</strong><small style={{ display: "block", color: "#758393", marginTop: 4 }}>O token identifica o catequizando sem expor dados pessoais.</small></div><form action={registerByToken.bind(null, id)} style={{ display: "flex", gap: 8, flex: 2, minWidth: 280 }}><input name="token" autoFocus placeholder="Token seguro do QR Code" minLength={32} maxLength={128} required /><button className="btn btn-primary">Confirmar</button></form></div></section>}
+    {!locked && <QrCameraReader meetingId={id} />}
     <div className="card table-wrap"><table className="table"><thead><tr><th>Catequizando</th><th>Registro atual</th><th>{locked ? "Situação" : "Marcar presença"}</th></tr></thead><tbody>{meeting.class.enrollments.map(enrollment => { const current = enrollment.catechumen.attendances[0]; return <tr key={enrollment.id}><td><div className="person"><div className="person-avatar">{enrollment.catechumen.fullName.slice(0, 2).toUpperCase()}</div><strong>{enrollment.catechumen.fullName}</strong></div></td><td>{current ? <StatusBadge status={current.status} /> : <span className="text-muted">Não registrado</span>}</td><td>{locked ? <span className="text-muted">Encontro encerrado</span> : <form action={recordAttendance.bind(null, id, enrollment.catechumenId)} className="attendance-form"><input type="hidden" name="method" value="MANUAL" /><select name="status" defaultValue={current?.status || "PRESENT"}><option value="PRESENT">Presente</option><option value="ABSENT">Ausente</option><option value="JUSTIFIED">Falta justificada</option><option value="LATE">Atrasado</option><option value="LEFT_EARLY">Saiu antes</option></select>{session.role !== "CATECHIST" && current && <input name="justification" placeholder="Justificativa da correção" required />}<button className="btn btn-secondary">Salvar</button></form>}</td></tr>; })}</tbody></table>{!total && <div className="empty">Esta turma ainda não possui alunos.</div>}</div>
   </AppShell>;
 }
