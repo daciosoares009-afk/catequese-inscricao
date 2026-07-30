@@ -12,12 +12,15 @@ export const dynamic = "force-dynamic";
 export default async function ClassesPage({ searchParams }: { searchParams: Promise<{ novo?: string; erro?: string }> }) {
   const session = await requireSession();
   const query = await searchParams;
+  const canManage = session.role !== "CATECHIST";
+  const loadFormOptions = Boolean(query.novo && canManage);
   const [rows, parishes, communities, sacraments, stages] = await Promise.all([
     prisma.class.findMany({ where: { deletedAt: null, ...catechistClassFilter(session) }, include: { community: true, sacrament: true, stage: true, _count: { select: { enrollments: { where: { status: "ACTIVE" } }, meetings: true } } }, orderBy: [{ year: "desc" }, { name: "asc" }] }),
-    prisma.parish.findMany({ where: { deletedAt: null } }), prisma.community.findMany({ where: { deletedAt: null } }),
-    prisma.sacrament.findMany({ where: { deletedAt: null, active: true } }), prisma.stage.findMany({ where: { deletedAt: null } }),
+    loadFormOptions ? prisma.parish.findMany({ where: { deletedAt: null } }) : Promise.resolve([]),
+    loadFormOptions ? prisma.community.findMany({ where: { deletedAt: null } }) : Promise.resolve([]),
+    loadFormOptions ? prisma.sacrament.findMany({ where: { deletedAt: null, active: true } }) : Promise.resolve([]),
+    loadFormOptions ? prisma.stage.findMany({ where: { deletedAt: null } }) : Promise.resolve([]),
   ]);
-  const canManage = session.role !== "CATECHIST";
   return <AppShell current="/turmas">
     <PageHeader title="Turmas" description="Organize etapas, catequistas e matrículas" action={canManage ? <Link className="btn btn-primary" href="/turmas?novo=1">+ Nova turma</Link> : undefined} />
     {query.erro && <div className="alert error">{query.erro === "vinculos-invalidos" ? "Comunidade, paróquia, sacramento ou etapa incompatíveis." : "Revise os dados informados."}</div>}

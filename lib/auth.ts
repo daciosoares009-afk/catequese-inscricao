@@ -8,6 +8,40 @@ import { prisma } from "@/lib/prisma";
 
 export const SESSION_COOKIE = "catequese_session";
 export type Session = { userId: string; name: string; email: string; role: Role };
+type CachedUser = { session: Session | null; expiresAt: number };
+
+const globalForAuth = globalThis as unknown as {
+  sessionUsers?: Map<string, CachedUser>;
+};
+const sessionUsers = globalForAuth.sessionUsers ?? new Map<string, CachedUser>();
+globalForAuth.sessionUsers = sessionUsers;
+
+function sessionCacheTtl() {
+  const configured = Number(process.env.SESSION_USER_CACHE_TTL_SECONDS || "60");
+  return Number.isFinite(configured) && configured >= 0 ? configured * 1000 : 60_000;
+}
+
+async function activeUserSession(userId: string) {
+  const cached = sessionUsers.get(userId);
+  if (cached && cached.expiresAt > Date.now()) return cached.session;
+
+  const user = await prisma.user.findFirst({
+    where: { id: userId, active: true, deletedAt: null },
+    select: { id: true, name: true, email: true, role: true },
+  });
+  const session = user
+    ? { userId: user.id, name: user.name, email: user.email, role: user.role }
+    : null;
+  sessionUsers.set(userId, {
+    session,
+    expiresAt: Date.now() + sessionCacheTtl(),
+  });
+  return session;
+}
+
+export function invalidateSessionUser(userId: string) {
+  sessionUsers.delete(userId);
+}
 
 function sessionSecret() {
   const value = process.env.AUTH_SECRET;
@@ -33,8 +67,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
   try {
     const payload = (await jwtVerify(token, sessionSecret())).payload as unknown as Session;
     if (!payload.userId || !payload.email || !payload.role) return null;
-    const user = await prisma.user.findFirst({ where: { id: payload.userId, active: true, deletedAt: null }, select: { id: true, name: true, email: true, role: true } });
-    return user ? { userId: user.id, name: user.name, email: user.email, role: user.role } : null;
+    return activeUserSession(payload.userId);
   } catch { return null; }
 });
 

@@ -27,15 +27,19 @@ export default async function SettingsPage({
   const session = await requireSession();
   const query = await searchParams;
   const [parishes, communities] = await Promise.all([
-    prisma.parish.findMany({
-      where: { deletedAt: null },
-      orderBy: { name: "asc" },
-    }),
-    prisma.community.findMany({
-      where: { deletedAt: null },
-      include: { parish: true },
-      orderBy: { name: "asc" },
-    }),
+    session.role === "ADMIN"
+      ? prisma.parish.findMany({
+          where: { deletedAt: null },
+          orderBy: { name: "asc" },
+        })
+      : Promise.resolve([]),
+    session.role === "ADMIN"
+      ? prisma.community.findMany({
+          where: { deletedAt: null },
+          include: { parish: true },
+          orderBy: { name: "asc" },
+        })
+      : Promise.resolve([]),
   ]);
 
   return (

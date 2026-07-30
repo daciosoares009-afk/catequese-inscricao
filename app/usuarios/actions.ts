@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
+import { invalidateSessionUser, requireSession } from "@/lib/auth";
 
 const createSchema = z.object({
   name: z.string().trim().min(3).max(120),
@@ -78,6 +78,7 @@ export async function toggleUserActive(id: string) {
       },
     }),
   ]);
+  invalidateSessionUser(id);
   redirect("/usuarios?sucesso=status");
 }
 

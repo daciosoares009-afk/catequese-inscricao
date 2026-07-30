@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AppShell from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { prisma } from "@/lib/prisma";
@@ -37,7 +38,7 @@ export default async function UsersPage({
       <PageHeader
         title="Usuários"
         description="Acessos e permissões da equipe pastoral"
-        action={<a className="btn btn-primary" href="/usuarios?novo=1">+ Novo usuário</a>}
+        action={<Link className="btn btn-primary" href="/usuarios?novo=1">+ Novo usuário</Link>}
       />
       {query.erro && (
         <div className="alert error">
@@ -64,7 +65,7 @@ export default async function UsersPage({
             <div className="field"><label>Telefone do catequista</label><input name="phone" /></div>
           </div>
           <div className="form-actions" style={{ marginTop: 18 }}>
-            <a href="/usuarios" className="btn btn-secondary">Cancelar</a>
+            <Link href="/usuarios" className="btn btn-secondary">Cancelar</Link>
             <button className="btn btn-primary">Criar acesso</button>
           </div>
         </form>

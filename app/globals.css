@@ -1027,6 +1027,102 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 .qr-management p { color: #7c8580; }
 
+.navigation-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 9999;
+  height: 3px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.navigation-progress.active { opacity: 1; }
+.navigation-progress i {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, #c69a43, #356c53);
+  box-shadow: 0 0 10px rgba(53,108,83,.28);
+  transform: translateX(-110%);
+}
+.navigation-progress.active i {
+  animation: navigation-progress 1.05s ease-in-out infinite;
+}
+@keyframes navigation-progress {
+  0% { transform: translateX(-110%); }
+  70% { transform: translateX(165%); }
+  100% { transform: translateX(255%); }
+}
+
+.page-loading {
+  min-height: 460px;
+  animation: page-loading-in .18s ease both;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.page-loading-heading {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.page-loading-heading i,
+.page-loading-toolbar,
+.page-loading-card i {
+  display: block;
+  border-radius: 10px;
+  background: linear-gradient(100deg, #ecefeccf 20%, #f8f8f4 38%, #ecefeccf 56%);
+  background-size: 220% 100%;
+  animation: page-loading-shimmer 1.2s ease-in-out infinite;
+}
+.page-loading-heading i:first-child { width: 210px; height: 28px; }
+.page-loading-heading i:last-child { width: 330px; max-width: 72%; height: 11px; }
+.page-loading-toolbar { width: 100%; height: 54px; margin-bottom: 18px; }
+.page-loading-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.page-loading-card {
+  min-height: 150px;
+  padding: 22px;
+  border: 1px solid #e8ebe7;
+  border-radius: 18px;
+  background: rgba(255,255,255,.62);
+}
+.page-loading-card i { width: 44px; height: 44px; margin-bottom: 22px; }
+.page-loading-card i:nth-child(2) { width: 72%; height: 13px; margin-bottom: 9px; }
+.page-loading-card i:nth-child(3) { width: 48%; height: 9px; margin: 0; }
+@keyframes page-loading-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes page-loading-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (max-width: 780px) {
+  .page-loading-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .page-loading-card { min-height: 125px; padding: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation-progress.active i,
+  .page-loading-heading i,
+  .page-loading-toolbar,
+  .page-loading-card i {
+    animation: none;
+  }
+}
+
 @media (max-width: 620px) {
   .qr-download-card {
     padding: 24px 16px;

@@ -43,10 +43,12 @@ export default async function MeetingsPage({
       orderBy: { date: "desc" },
       take: 50,
     }),
-    prisma.class.findMany({
-      where: { deletedAt: null, status: "ACTIVE", ...classScope },
-      orderBy: { name: "asc" },
-    }),
+    query.novo
+      ? prisma.class.findMany({
+          where: { deletedAt: null, status: "ACTIVE", ...classScope },
+          orderBy: { name: "asc" },
+        })
+      : Promise.resolve([]),
   ]);
 
   return (

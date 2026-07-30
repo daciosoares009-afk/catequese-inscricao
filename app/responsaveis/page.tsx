@@ -15,7 +15,9 @@ export default async function GuardiansPage({ searchParams }: { searchParams: Pr
   const guardianScope = session.role === "CATECHIST" ? { catechumens: { some: { catechumen: personScope } } } : {};
   const [rows, students] = await Promise.all([
     prisma.guardian.findMany({ where: { deletedAt: null, fullName: query.q ? { contains: query.q, mode: "insensitive" } : undefined, ...guardianScope }, include: { catechumens: { where: { catechumen: personScope }, include: { catechumen: true } } }, orderBy: { fullName: "asc" } }),
-    prisma.catechumen.findMany({ where: { deletedAt: null, ...personScope }, orderBy: { fullName: "asc" } }),
+    query.novo && session.role !== "CATECHIST"
+      ? prisma.catechumen.findMany({ where: { deletedAt: null, ...personScope }, orderBy: { fullName: "asc" } })
+      : Promise.resolve([]),
   ]);
   const canManage = session.role !== "CATECHIST";
   return <AppShell current="/responsaveis"><PageHeader title="Responsáveis" description="Contatos, autorizações e vínculos familiares" action={canManage ? <Link className="btn btn-primary" href="/responsaveis?novo=1">+ Novo responsável</Link> : undefined} />
