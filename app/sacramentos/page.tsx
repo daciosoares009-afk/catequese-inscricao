@@ -7,7 +7,7 @@ import { createSacrament, createStage } from "./actions";
 export const dynamic = "force-dynamic";
 
 export default async function SacramentsPage() {
-  const session = await requireSession();
+  const session = await requireSession(["ADMIN"]);
   const canManage = session.role === "ADMIN";
   const rows = await prisma.sacrament.findMany({
     where: { deletedAt: null },

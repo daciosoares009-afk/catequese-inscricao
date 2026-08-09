@@ -2,6 +2,7 @@ import Link from "next/link";
 import AppShell from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { createCatechumen } from "../actions";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 export default async function NewCatechumenPage({
   searchParams,
@@ -35,7 +36,7 @@ export default async function NewCatechumenPage({
                 maxLength={160}
                 placeholder="Digite o nome completo"
               />
-              <small>O QR Code será criado automaticamente após salvar.</small>
+              <small className="field-help">O QR Code será criado automaticamente após salvar.</small>
             </div>
           </div>
         </section>
@@ -43,7 +44,7 @@ export default async function NewCatechumenPage({
           <Link href="/catequizandos" className="btn btn-secondary">
             Cancelar
           </Link>
-          <button className="btn btn-primary">Salvar e gerar QR Code</button>
+          <SubmitButton pendingLabel="Salvando cadastro...">Salvar e gerar QR Code</SubmitButton>
         </div>
       </form>
     </AppShell>

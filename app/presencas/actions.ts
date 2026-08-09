@@ -37,3 +37,26 @@ export async function registerByToken(meetingId: string, formData: FormData) {
   await recordAttendance(meetingId, qr.catechumenId, next);
   redirect(`/presencas/${meetingId}?sucesso=${encodeURIComponent(qr.catechumen.fullName)}`);
 }
+
+export async function markAllPresent(meetingId: string) {
+  const session = await requireSession();
+  const meeting = await prisma.meeting.findFirst({
+    where: { id: meetingId, deletedAt: null },
+    select: { id: true, classId: true, status: true, class: { select: { enrollments: { where: { status: "ACTIVE", deletedAt: null }, select: { catechumenId: true } } } } },
+  });
+  if (!meeting || !(await canAccessClass(session, meeting.classId))) redirect(`/presencas/${meetingId}?erro=permissao`);
+  if (meeting.status === "CANCELLED" || (meeting.status === "CLOSED" && session.role === "CATECHIST")) redirect(`/presencas/${meetingId}?erro=encerrado`);
+
+  await prisma.$transaction(async tx => {
+    for (const enrollment of meeting.class.enrollments) {
+      await tx.attendance.upsert({
+        where: { catechumenId_meetingId: { catechumenId: enrollment.catechumenId, meetingId } },
+        create: { catechumenId: enrollment.catechumenId, meetingId, classId: meeting.classId, status: "PRESENT", method: "GROUP", recordedById: session.userId },
+        update: { status: "PRESENT", method: "GROUP", recordedById: session.userId, recordedAt: new Date(), justification: null },
+      });
+    }
+    await tx.auditLog.create({ data: { userId: session.userId, action: "MARK_ALL_PRESENT", entity: "Meeting", entityId: meetingId, after: { total: meeting.class.enrollments.length } } });
+  });
+  revalidatePath(`/presencas/${meetingId}`);
+  redirect(`/presencas/${meetingId}?sucesso=turma`);
+}

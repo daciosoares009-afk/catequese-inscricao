@@ -48,3 +48,20 @@ export async function enrollStudent(classId: string, formData: FormData) {
   }
   revalidatePath(`/turmas/${classId}`);
 }
+
+export async function assignCatechist(classId: string, formData: FormData) {
+  const session = await requireSession(["ADMIN", "COORDINATOR"]);
+  const catechistId = String(formData.get("catechistId") || "");
+  if (!classId || !catechistId) redirect(`/turmas/${classId}?erro=catequista`);
+  const [targetClass, catechist] = await Promise.all([
+    prisma.class.findFirst({ where: { id: classId, deletedAt: null }, select: { id: true } }),
+    prisma.catechist.findFirst({ where: { id: catechistId, deletedAt: null, user: { active: true, deletedAt: null } }, select: { id: true, user: { select: { name: true } } } }),
+  ]);
+  if (!targetClass || !catechist) redirect(`/turmas/${classId}?erro=catequista`);
+  await prisma.$transaction([
+    prisma.classCatechist.upsert({ where: { classId_catechistId: { classId, catechistId } }, create: { classId, catechistId }, update: {} }),
+    prisma.auditLog.create({ data: { userId: session.userId, action: "ASSIGN_CATECHIST", entity: "Class", entityId: classId, after: { catechistId, name: catechist.user.name } } }),
+  ]);
+  revalidatePath(`/turmas/${classId}`);
+  redirect(`/turmas/${classId}?sucesso=catequista`);
+}

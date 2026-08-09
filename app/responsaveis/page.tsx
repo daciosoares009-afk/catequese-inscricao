@@ -9,7 +9,7 @@ import { createGuardian } from "./actions";
 
 export const dynamic = "force-dynamic";
 export default async function GuardiansPage({ searchParams }: { searchParams: Promise<{ q?: string; novo?: string; erro?: string; sucesso?: string }> }) {
-  const session = await requireSession();
+  const session = await requireSession(["ADMIN"]);
   const query = await searchParams;
   const personScope = catechistCatechumenFilter(session);
   const guardianScope = session.role === "CATECHIST" ? { catechumens: { some: { catechumen: personScope } } } : {};

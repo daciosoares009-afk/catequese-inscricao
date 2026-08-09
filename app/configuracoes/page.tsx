@@ -89,7 +89,7 @@ export default async function SettingsPage({
       </div>}
 
       <div className="dashboard-grid">
-        {session.role === "ADMIN" && <section className="card form-card">
+        <section className="card form-card">
           <h2>Alterar minha senha</h2>
           <form action={changeOwnPassword} className="form-grid" style={{ marginTop: 16 }}>
             <div className="field full"><label>Senha atual</label><input name="currentPassword" type="password" required /></div>
@@ -97,7 +97,7 @@ export default async function SettingsPage({
             <div className="field"><label>Confirmação</label><input name="confirmation" type="password" minLength={12} required /></div>
             <button className="btn btn-primary">Alterar senha</button>
           </form>
-        </section>}
+        </section>
         <section className="card form-card">
           <h2>Integrações externas</h2>
           <div className="list" style={{ marginTop: 16 }}>

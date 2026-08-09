@@ -3,11 +3,12 @@ import {
   ArrowUpRight,
   BookOpen,
   CalendarDays,
-  Check,
+  ClipboardCheck,
   Clock3,
+  FileText,
   MapPin,
-  Megaphone,
   Plus,
+  QrCode,
   ShieldCheck,
   TriangleAlert,
   UserRoundCheck,
@@ -15,12 +16,12 @@ import {
 import AppShell from "@/components/app-shell";
 import { requireSession } from "@/lib/auth";
 import {
-  catechistCatechumenFilter,
   catechistClassFilter,
 } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 import { roleLabel } from "@/lib/format";
 import { frequencySummary } from "@/utils/frequency";
+import { StatCard } from "@/components/ui/stat-card";
 
 export const dynamic = "force-dynamic";
 
@@ -35,10 +36,14 @@ const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Fortaleza",
 });
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ year?: string }> }) {
   const session = await requireSession();
+  const query = await searchParams;
+  const currentYear = new Date().getFullYear();
+  const requestedYear = Number(query.year || currentYear);
+  const year = Number.isInteger(requestedYear) && requestedYear >= 2020 && requestedYear <= currentYear + 2 ? requestedYear : currentYear;
   const classFilter = catechistClassFilter(session);
-  const catechumenFilter = catechistCatechumenFilter(session);
+  const classScope = { ...classFilter, year };
   const localDate = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Fortaleza",
     year: "numeric",
@@ -46,33 +51,23 @@ export default async function DashboardPage() {
     day: "2-digit",
   }).format(new Date());
   const todayStart = new Date(`${localDate}T00:00:00.000Z`);
-  const accessibleClassIds =
-    session.role === "CATECHIST"
-      ? (
-          await prisma.class.findMany({
-            where: { deletedAt: null, ...classFilter },
-            select: { id: true },
-          })
-        ).map(item => item.id)
-      : [];
-
   const [
     students,
     classes,
     attendance,
     upcoming,
     classRows,
-    announcements,
     enrollments,
+    classYears,
   ] = await Promise.all([
     prisma.catechumen.count({
-      where: { deletedAt: null, status: "ACTIVE", ...catechumenFilter },
+      where: { deletedAt: null, status: "ACTIVE", enrollments: { some: { status: "ACTIVE", class: classScope } } },
     }),
     prisma.class.count({
-      where: { deletedAt: null, status: "ACTIVE", ...classFilter },
+      where: { deletedAt: null, status: "ACTIVE", ...classScope },
     }),
     prisma.attendance.findMany({
-      where: { class: classFilter, meeting: { status: "CLOSED", deletedAt: null } },
+      where: { class: classScope, meeting: { status: "CLOSED", deletedAt: null } },
       select: { catechumenId: true, classId: true, status: true, meeting: { select: { date: true } } },
     }),
     prisma.meeting.findMany({
@@ -80,14 +75,14 @@ export default async function DashboardPage() {
         deletedAt: null,
         date: { gte: todayStart },
         status: { in: ["SCHEDULED", "IN_PROGRESS"] },
-        class: classFilter,
+        class: classScope,
       },
       include: { class: true },
       orderBy: { date: "asc" },
       take: 4,
     }),
     prisma.class.findMany({
-      where: { deletedAt: null, status: "ACTIVE", ...classFilter },
+      where: { deletedAt: null, status: "ACTIVE", ...classScope },
       include: {
         _count: {
           select: {
@@ -99,40 +94,25 @@ export default async function DashboardPage() {
       orderBy: { name: "asc" },
       take: 4,
     }),
-    prisma.announcement.findMany({
-      where: {
-        deletedAt: null,
-        ...(session.role === "CATECHIST"
-          ? {
-              OR: [
-                { recipientType: "ALL" },
-                { recipientType: "CATECHISTS" },
-                { recipientType: "CLASS", recipientId: { in: accessibleClassIds } },
-              ],
-            }
-          : {}),
-      },
-      orderBy: { createdAt: "desc" },
-      take: 3,
-    }),
     prisma.enrollment.findMany({
-      where: { status: "ACTIVE", class: classFilter },
-      select: { catechumenId: true, classId: true },
+      where: { status: "ACTIVE", class: classScope },
+      select: { catechumenId: true, classId: true, catechumen: { select: { fullName: true } }, class: { select: { name: true } } },
     }),
+    prisma.class.findMany({ where: { deletedAt: null, ...classFilter }, distinct: ["year"], select: { year: true }, orderBy: { year: "desc" } }),
   ]);
 
   const { rate } = frequencySummary(attendance.map((item) => item.status));
-  const atRisk = enrollments.filter((enrollment) => {
-    const own = attendance.filter(
-      (item) =>
-        item.catechumenId === enrollment.catechumenId &&
-        item.classId === enrollment.classId,
-    );
-    return (
-      own.length > 0 &&
-      frequencySummary(own.map((item) => item.status)).rate < 75
-    );
-  }).length;
+  const attendanceByEnrollment = new Map<string, typeof attendance>();
+  for (const record of attendance) {
+    const key = `${record.catechumenId}:${record.classId}`;
+    attendanceByEnrollment.set(key, [...(attendanceByEnrollment.get(key) || []), record]);
+  }
+  const atRiskRows = enrollments.flatMap(enrollment => {
+    const own = attendanceByEnrollment.get(`${enrollment.catechumenId}:${enrollment.classId}`) || [];
+    const summary = frequencySummary(own.map(item => item.status));
+    return summary.total > 0 && summary.rate < 75 ? [{ ...enrollment, rate: summary.rate }] : [];
+  }).sort((a, b) => a.rate - b.rate);
+  const atRisk = atRiskRows.length;
 
   const stats = [
     {
@@ -145,7 +125,7 @@ export default async function DashboardPage() {
     {
       label: "Turmas em andamento",
       value: classes,
-      trend: "Ano pastoral 2026",
+      trend: `Ano pastoral ${year}`,
       icon: BookOpen,
       tone: "amber",
     },
@@ -190,6 +170,10 @@ export default async function DashboardPage() {
 
   return (
     <AppShell current="/dashboard">
+      <div className="dashboard-commandbar">
+        <div><span>Ano pastoral</span><strong>{year}</strong></div>
+        <form><label htmlFor="dashboard-year">Período</label><select id="dashboard-year" name="year" defaultValue={String(year)}>{classYears.map(item => <option key={item.year} value={item.year}>{item.year}</option>)}</select><button className="btn btn-secondary">Atualizar</button></form>
+      </div>
       <section className="faith-welcome">
         <div className="faith-welcome-photo" />
         <div className="faith-welcome-overlay" />
@@ -213,21 +197,28 @@ export default async function DashboardPage() {
         )}
       </section>
 
-      <section className="faith-stats" aria-label="Indicadores principais">
-        {stats.map(({ label, value, trend, icon: Icon, tone }) => (
-          <article className={`faith-stat faith-stat-${tone}`} key={label}>
-            <div className="faith-stat-top">
-              <span className="faith-stat-icon">
-                <Icon size={18} />
-              </span>
-              <ArrowUpRight size={15} />
-            </div>
-            <span className="faith-stat-value">{value}</span>
-            <h2>{label}</h2>
-            <p>{trend}</p>
-          </article>
-        ))}
+      <section className="metrics-grid dashboard-metrics" aria-label="Indicadores principais">
+        {stats.map(({ label, value, trend, icon, tone }) => <StatCard key={label} label={label} value={value} context={trend} icon={icon} tone={tone === "sage" ? "green" : tone === "amber" ? "gold" : tone === "blue" ? "blue" : "rose"} />)}
       </section>
+
+      <div className="dashboard-support-grid">
+        <section className="quick-actions-panel">
+          <div className="section-heading"><div><span>Atalhos</span><h2>Ações rápidas</h2></div></div>
+          <div className="quick-actions-grid">
+            {session.role !== "CATECHIST" && <Link href="/catequizandos/novo"><span><Plus size={18} /></span><div><strong>Novo catequizando</strong><small>Cadastrar e gerar QR Code</small></div><ArrowUpRight size={15} /></Link>}
+            <Link href="/encontros?novo=1"><span><CalendarDays size={18} /></span><div><strong>Novo encontro</strong><small>Planejar conteúdo e chamada</small></div><ArrowUpRight size={15} /></Link>
+            <Link href="/encontros"><span><QrCode size={18} /></span><div><strong>Abrir chamada</strong><small>Ler QR Code ou registrar manualmente</small></div><ArrowUpRight size={15} /></Link>
+            {session.role !== "CATECHIST" && <Link href="/relatorios"><span><FileText size={18} /></span><div><strong>Ver relatórios</strong><small>Acompanhar frequência das turmas</small></div><ArrowUpRight size={15} /></Link>}
+          </div>
+        </section>
+        <section className="risk-panel">
+          <div className="section-heading"><div><span>Acompanhamento</span><h2>Alertas de frequência</h2></div><Link href="/relatorios">Ver relatório</Link></div>
+          <div className="risk-list">
+            {atRiskRows.slice(0, 4).map(item => <article key={`${item.catechumenId}:${item.classId}`}><span><TriangleAlert size={15} /></span><div><strong>{item.catechumen.fullName}</strong><small>{item.class.name}</small></div><b>{item.rate}%</b></article>)}
+            {!atRiskRows.length && <div className="risk-empty"><ClipboardCheck size={20} /><span>Nenhum alerta neste período.</span></div>}
+          </div>
+        </section>
+      </div>
 
       <div className="faith-dashboard-grid">
         <section className="faith-panel faith-frequency-panel">
@@ -339,56 +330,6 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section className="faith-panel faith-announcements-panel">
-          <div className="faith-panel-header">
-            <div>
-              <p>Mural</p>
-              <h2>Comunicados recentes</h2>
-            </div>
-            <Link href="/comunicados">Ver todos</Link>
-          </div>
-          <div className="faith-announcement-list">
-            {announcements.map((announcement) => (
-              <article
-                className="faith-announcement-item"
-                key={announcement.id}
-              >
-                <span className="faith-announcement-icon">
-                  <Megaphone size={15} />
-                </span>
-                <div>
-                  <div className="faith-announcement-title">
-                    <h3>{announcement.title}</h3>
-                    <span
-                      className={
-                        announcement.priority === "URGENT" ? "urgent" : ""
-                      }
-                    >
-                      {announcement.priority === "URGENT"
-                        ? "Urgente"
-                        : "Normal"}
-                    </span>
-                  </div>
-                  <p>{announcement.message.slice(0, 105)}</p>
-                  <small>
-                    <Check size={11} />
-                    Para:{" "}
-                    {announcement.recipientType === "CATECHISTS"
-                      ? "Catequistas"
-                      : announcement.recipientType === "CLASS"
-                        ? "Turma"
-                        : announcement.recipientType === "COMMUNITY"
-                          ? "Comunidade"
-                          : "Todos"}
-                  </small>
-                </div>
-              </article>
-            ))}
-            {!announcements.length && (
-              <div className="faith-empty">Nenhum comunicado recente.</div>
-            )}
-          </div>
-        </section>
       </div>
     </AppShell>
   );

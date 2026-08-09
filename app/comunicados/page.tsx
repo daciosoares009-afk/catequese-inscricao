@@ -14,7 +14,7 @@ export default async function AnnouncementsPage({
 }: {
   searchParams: Promise<{ erro?: string; sucesso?: string }>;
 }) {
-  const session = await requireSession();
+  const session = await requireSession(["ADMIN"]);
   const query = await searchParams;
   const [classes, communities] = await Promise.all([
     prisma.class.findMany({

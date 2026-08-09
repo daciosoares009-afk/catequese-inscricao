@@ -1,27 +1,27 @@
 numero;nome_completo;confianca;observacao
-1;Geovanna Isabelle da Silva;alta;
-2;Gabriel Bezerra dos Santos;alta;
+1;Geovanna Isabele da Silva;alta;
+2;Gabriell Bezerra dos Santos;alta;
 3;Cristiane de Freitas Rocha Portela;alta;
-4;Luís Pedro Rocha Portela;media;Confirmar primeiro nome
-5;Ana Clara Barreira da Silva;alta;
+4;Luís Carlos Rocha Portela;alta;
+5;Ana Clara Barrera da Silva;alta;
 6;Raphaely Lima de Santana;alta;
 7;Alice Romero Camargo;alta;
-8;Júlio Vieixo Moreira;media;Confirmar sobrenome Vieixo
+8;Júlio Vieira Moreira;alta;
 9;Jéssica Melo de Macêdo;alta;
-10;Thiago Ferreira Souza;alta;
-11;Cauã Jorgina Lima Silva;baixa;Confirmar nome completo
-12;Luan Massingandi de Oliveira Caldeira;media;Confirmar Massingandi
+10;Thyago Ferreira Souza;alta;
+11;Cauã Joaquim Lima Silva;alta;
+12;Lucas Massagardi de Oliveira Caldeira;alta;
 13;Manuela de Oliveira Rodrigues;alta;
 14;João Paulo Lima Mendonça;alta;
-15;Bruno Miguel Barcado de Santoro;baixa;Confirmar sobrenomes
+15;Bruno Miguel dos Santos;media;Sobrenomes informados com ressalva
 16;Beatriz Rodrigues de Souza Silva;alta;
 17;Rafael Augusto Macedo Silva;alta;
 18;Pedro Henrique Silva Rosário;alta;
 19;Isabella Figueiredo Gomes;alta;
-20;Munir Konovlo Silva;baixa;Confirmar nome completo
-21;Carlos Daniel;media;Nome parece incompleto
-22;Lohan Expedito;media;Confirmar grafia e sobrenome
-23;Ana Jhullya F. Rodrigues;media;Confirmar nome representado pela inicial F.
+20;Munie Konoulo Silva;media;Grafia informada com ressalva
+21;Carlos Daniel;alta;
+22;Lohan Expedito;alta;
+23;Ana Jhullya F. Rodrigues;alta;
 24;Diogo Oliveira de Amorim;alta;
-25;Victor Hugo de Lima Laurentino;alta;
+25;Victor Hugo de Lima Laurentino;media;Sobrenome informado com ressalva
 26;Isabella Teodósio Michelin;alta;

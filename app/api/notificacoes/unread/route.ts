@@ -8,11 +8,12 @@ export async function GET() {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const count = await prisma.notification.count({
-    where: { userId: session.userId, readAt: null },
-  });
+  const [count, parish] = await Promise.all([
+    prisma.notification.count({ where: { userId: session.userId, readAt: null } }),
+    prisma.parish.findFirst({ where: { deletedAt: null }, select: { name: true }, orderBy: { createdAt: "asc" } }),
+  ]);
   return NextResponse.json(
-    { count },
+    { count, parishName: parish?.name || null },
     { headers: { "Cache-Control": "private, no-store" } },
   );
 }
