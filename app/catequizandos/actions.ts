@@ -12,15 +12,38 @@ export async function createCatechumen(formData: FormData) {
   if (!parsed.success) redirect("/catequizandos/novo?erro=dados-invalidos");
   const data = parsed.data;
   const item = await prisma.$transaction(async tx => {
+    const targetClass = await tx.class.findFirst({
+      where: {
+        id: data.classId,
+        sacramentId: data.sacramentId,
+        deletedAt: null,
+        status: { in: ["ACTIVE", "PLANNED"] },
+      },
+      include: {
+        _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
+      },
+    });
+    if (!targetClass) throw new Error("INVALID_CLASS");
+    if (targetClass._count.enrollments >= targetClass.capacity) {
+      throw new Error("CLASS_FULL");
+    }
     const created = await tx.catechumen.create({
       data: {
         fullName: data.fullName,
-        status: data.status,
+        status: "ACTIVE",
+        parishId: targetClass.parishId,
+        communityId: targetClass.communityId,
         qrCode: { create: { token: randomBytes(32).toString("base64url") } },
       },
     });
-    await tx.auditLog.create({ data: { userId: session.userId, action: "CREATE", entity: "Catechumen", entityId: created.id, after: { fullName: created.fullName, status: created.status, communityId: created.communityId } } });
+    await tx.enrollment.create({
+      data: { catechumenId: created.id, classId: targetClass.id },
+    });
+    await tx.auditLog.create({ data: { userId: session.userId, action: "CREATE", entity: "Catechumen", entityId: created.id, after: { fullName: created.fullName, status: created.status, classId: targetClass.id, sacramentId: data.sacramentId, communityId: created.communityId } } });
     return created;
+  }).catch(error => {
+    const code = error instanceof Error ? error.message : "INVALID_CLASS";
+    redirect(`/catequizandos/novo?erro=${code === "CLASS_FULL" ? "turma-lotada" : "vinculos-invalidos"}`);
   });
   redirect(`/catequizandos/${item.id}?sucesso=cadastrado`);
 }

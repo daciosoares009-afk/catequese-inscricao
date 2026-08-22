@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -159,7 +158,6 @@ export default function AppShell({
         ))}
       </nav>
       <div className="faith-community">
-        <Image src="/images/igreja-altar.webp" alt="Altar da comunidade paroquial" fill sizes="240px" />
         <span>Paróquia</span><strong>{parishName}</strong>
       </div>
       <div className="faith-sidebar-footer">

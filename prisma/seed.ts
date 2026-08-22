@@ -13,7 +13,7 @@ async function main(){
   const coordinator=await prisma.user.upsert({where:{email:"coordenador@catequesepresente.com"},update:{},create:{name:"Paulo Coordenador",email:"coordenador@catequesepresente.com",passwordHash,role:Role.COORDINATOR}});
   const cat1=await prisma.user.upsert({where:{email:"maria@catequesepresente.com"},update:{},create:{name:"Maria Oliveira",email:"maria@catequesepresente.com",passwordHash,role:Role.CATECHIST,catechist:{create:{phone:"85999990001"}}},include:{catechist:true}});
   const cat2=await prisma.user.upsert({where:{email:"jose@catequesepresente.com"},update:{},create:{name:"José Santos",email:"jose@catequesepresente.com",passwordHash,role:Role.CATECHIST,catechist:{create:{phone:"85999990002"}}},include:{catechist:true}});
-  const parish=await prisma.parish.upsert({where:{name_city:{name:"Paróquia São José",city:"Fortaleza"}},update:{},create:{name:"Paróquia São José",city:"Fortaleza"}});
+  const parish=await prisma.parish.upsert({where:{name_city:{name:"Paróquia João Batista",city:"Fortaleza"}},update:{},create:{name:"Paróquia João Batista",city:"Fortaleza"}});
   const matriz=await prisma.community.upsert({where:{parishId_name:{parishId:parish.id,name:"Comunidade Matriz"}},update:{},create:{name:"Comunidade Matriz",parishId:parish.id}});
   const fatima=await prisma.community.upsert({where:{parishId_name:{parishId:parish.id,name:"Nossa Senhora de Fátima"}},update:{},create:{name:"Nossa Senhora de Fátima",parishId:parish.id}});
   const batismo=await prisma.sacrament.upsert({where:{name:"Batismo"},update:{},create:{name:"Batismo",description:"Iniciação à vida cristã"}});

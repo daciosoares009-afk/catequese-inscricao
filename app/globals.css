@@ -220,14 +220,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   z-index: -1;
   background: linear-gradient(0deg, rgba(10,32,24,.96), rgba(10,32,24,.12));
 }
-.faith-community img {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 .faith-community span,
 .faith-community strong { display: block; }
 .faith-community span {
@@ -815,6 +807,44 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   background: #e7f1eb;
 }
 .qr-camera-form { display: none; }
+.qr-permission-backdrop {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 20, 14, .48);
+}
+.qr-permission-dialog {
+  width: min(440px, 100%);
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid #dce6de;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 22px 55px rgba(12, 37, 24, .28);
+}
+.qr-permission-dialog h2 {
+  margin: 2px 0 6px;
+  color: var(--faith-ink, var(--navy));
+  font: 600 18px Georgia, serif;
+}
+.qr-permission-dialog p {
+  margin: 0;
+  color: #687971;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.qr-permission-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
 .qr-camera-stage {
   position: relative;
   width: min(620px, 100%);
@@ -958,6 +988,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   }
   .qr-camera-mask span { width: 240px; height: 240px; }
   .qr-manual form { align-items: stretch; flex-direction: column; }
+  .qr-permission-actions { flex-direction: column-reverse; }
+  .qr-permission-actions .btn { width: 100%; }
 }
 
 /* Produto 2026 — sistema visual compartilhado */
@@ -1267,6 +1299,19 @@ button:disabled, .btn:disabled { opacity: .55; cursor: not-allowed; transform: n
 .student-profile-layout { display: grid; grid-template-columns: 270px minmax(0,1fr); gap: 17px; align-items: start; }.student-identity-card { position: sticky; top: 96px; padding: 24px; text-align: center; }.student-identity-card > .user-avatar { margin: 0 auto 13px; }.student-identity-card h2 { margin: 0 0 10px; color: var(--app-primary); font: 650 20px Georgia,serif; }.student-identity-card dl { display: grid; gap: 0; margin: 20px 0 0; text-align: left; }.student-identity-card dl > div { padding: 12px 0; border-top: 1px solid var(--app-border); }.student-identity-card dt { color: var(--app-muted); font-size: 8px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; }.student-identity-card dd { margin: 5px 0 0; color: var(--app-text); font-size: 10px; font-weight: 700; }.profile-name-form { display: grid; gap: 8px; margin-top: 16px; padding-top: 17px; border-top: 1px solid var(--app-border); text-align: left; }.profile-name-form label { color: var(--app-muted); font-size: 8px; font-weight: 800; text-transform: uppercase; }.profile-name-form input { width: 100%; min-height: 42px; padding: 0 11px; border: 1px solid var(--app-border); border-radius: 10px; }.student-profile-content { display: grid; gap: 17px; }.qr-profile-card { overflow: hidden; }.qr-profile-body { min-height: 300px; display: flex; align-items: center; justify-content: center; gap: 28px; padding: 20px; }.qr-profile-body .qr-download-image { width: 260px; flex: 0 0 260px; }.qr-profile-actions { min-width: 220px; display: grid; gap: 9px; }.qr-profile-actions > small { color: var(--app-muted); font-size: 8px; text-align: center; }.student-info-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 17px; }.student-info-grid .card { overflow: hidden; }.danger-zone { border: 1px solid #efd8d5; border-radius: 14px; background: #fff9f8; }.danger-zone summary { padding: 14px 16px; color: var(--app-danger); cursor: pointer; font-size: 10px; font-weight: 800; }.danger-zone > div { padding: 0 16px 16px; }.danger-zone p { color: var(--app-muted); font-size: 10px; line-height: 1.5; }
 @media (max-width: 980px) { .student-profile-layout { grid-template-columns: 1fr; }.student-identity-card { position: static; }.student-identity-card dl { grid-template-columns: repeat(3,1fr); gap: 10px; }.student-identity-card dl > div { border-top: 0; border-radius: 10px; background: #f5f7f4; padding: 10px; }.student-info-grid { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .qr-profile-body { flex-direction: column; }.qr-profile-body .qr-download-image { width: min(260px,100%); flex-basis: auto; }.qr-profile-actions { width: 100%; min-width: 0; }.qr-profile-actions .btn, .qr-profile-actions form { width: 100%; }.student-identity-card dl { grid-template-columns: 1fr; }.guardian-summary .badge { display: none; } }
+
+@media (max-width: 620px) {
+  .form-card { padding: 18px 15px; }
+  .form-actions, .row-actions, .inline-form { align-items: stretch; flex-direction: column; }
+  .form-actions .btn, .row-actions .btn, .inline-form .btn, .inline-form input { width: 100%; }
+  .page-action-group { width: 100%; justify-content: stretch; }
+  .page-action-group .btn { flex: 1; }
+  .card-head { align-items: flex-start; gap: 10px; }
+  .card-head > .badge { flex: 0 0 auto; }
+  .tabs { padding-inline: 12px; }
+  .tab { padding-inline: 10px; }
+  .qr-management { gap: 10px; }
+}
 
 .qr-download-card {
   width: min(560px, 100%);

@@ -4,6 +4,8 @@ export const loginSchema = z.object({ email: z.email("E-mail inválido"), passwo
 export const catechumenSchema = z.object({
   fullName: z.string().trim().min(3, "Informe o nome completo").max(160),
   status: z.enum(["ACTIVE", "COMPLETED", "TRANSFERRED", "DROPOUT", "WAITING", "INACTIVE"]).default("WAITING"),
+  classId: z.string().min(1, "Selecione a turma"),
+  sacramentId: z.string().min(1, "Selecione o sacramento"),
 });
 export const guardianSchema = z.object({ fullName: z.string().min(3), phone: z.string().min(8), whatsapp: z.string().optional(), email: z.union([z.email(), z.literal("")]).optional(), relationship: z.string().min(2), catechumenId: z.string().optional(), allowMessages: z.coerce.boolean().default(false), allowImageUse: z.coerce.boolean().default(false) });
 

@@ -16,8 +16,8 @@ const poolerUrl = new URL(connectionString);
 poolerUrl.searchParams.delete("sslmode");
 const client = new Client({
   connectionString: poolerUrl.toString(),
-  // O Supavisor pode apresentar uma cadeia própria. A conexão permanece TLS.
-  ssl: { rejectUnauthorized: false },
+  // Exige TLS com certificado válido; não aceite certificados autoassinados.
+  ssl: { rejectUnauthorized: true },
 });
 
 async function ensureMigrationTable() {

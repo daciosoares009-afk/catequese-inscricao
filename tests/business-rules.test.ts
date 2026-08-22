@@ -37,13 +37,14 @@ test("encontro rejeita datas e horários inválidos", () => {
   assert.equal(meetingSchema.safeParse({ ...base, endTime: "08:30" }).success, false);
 });
 
-test("catequizando pode ser cadastrado somente com o nome", () => {
-  const parsed = catechumenSchema.safeParse({ fullName: "  Ana Maria  " });
+test("catequizando exige turma e sacramento no cadastro", () => {
+  const parsed = catechumenSchema.safeParse({ fullName: "  Ana Maria  ", classId: "turma-1", sacramentId: "sacramento-1" });
   assert.equal(parsed.success, true);
   if (parsed.success) {
     assert.equal(parsed.data.fullName, "Ana Maria");
     assert.equal(parsed.data.status, "WAITING");
   }
+  assert.equal(catechumenSchema.safeParse({ fullName: "Ana Maria" }).success, false);
 });
 
 test("login bloqueia após cinco tentativas inválidas", () => {

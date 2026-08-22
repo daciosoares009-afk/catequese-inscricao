@@ -35,7 +35,7 @@ export default async function AttendancePage({ params, searchParams }: { params:
 
   return <AppShell current="/presencas">
     <PageHeader eyebrow="Frequência" title="Chamada do encontro" description={`${meeting.theme} · ${meeting.class.name} · ${formatDate(meeting.date)} às ${meeting.startTime}`} action={meeting.status === "CANCELLED" ? <StatusBadge status="CANCELLED" /> : meeting.status !== "CLOSED" ? <form action={closeMeeting.bind(null, id)}><ConfirmSubmitButton message={pending ? `Ainda existem ${pending} registro(s) pendente(s). Ao encerrar, serão marcados como falta. Deseja continuar?` : "Finalizar a chamada deste encontro?"} pendingLabel="Encerrando...">Encerrar chamada</ConfirmSubmitButton></form> : <StatusBadge status="CLOSED" />} />
-    {query.sucesso && <div className="alert success attendance-feedback" role="status"><CheckCircle2 size={17} />{query.sucesso === "turma" ? "Todos os catequizandos foram marcados como presentes." : `Presença de ${query.sucesso} confirmada.`}</div>}
+    {query.sucesso && <div className="alert success attendance-feedback" role="status"><CheckCircle2 size={17} />{query.sucesso === "turma" ? "Todos os catequizandos foram marcados como presentes." : <>QR code lido com sucesso. Presença de {query.sucesso} confirmada.</>}</div>}
     {query.erro && <div className="alert error" role="alert"><AlertCircle size={17} />{errors[query.erro] || "Não foi possível concluir a operação."}</div>}
 
     <section className="attendance-summary card">

@@ -24,6 +24,7 @@ type ScannerStatus =
 export function QrCameraReader({ meetingId }: { meetingId: string }) {
   const [status, setStatus] = useState<ScannerStatus>("idle");
   const [message, setMessage] = useState("");
+  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const tokenRef = useRef<HTMLInputElement>(null);
@@ -52,6 +53,7 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
   }, []);
 
   async function openCamera() {
+    setPermissionDialogOpen(false);
     setMessage("");
     scannedRef.current = false;
 
@@ -140,7 +142,7 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
           <button
             type="button"
             className="btn btn-primary"
-            onClick={openCamera}
+            onClick={() => setPermissionDialogOpen(true)}
           >
             <Camera size={17} />
             Abrir câmera
@@ -157,6 +159,46 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
           </button>
         )}
       </div>
+
+      {permissionDialogOpen && (
+        <div
+          className="qr-permission-backdrop"
+          role="presentation"
+          onMouseDown={() => setPermissionDialogOpen(false)}
+        >
+          <section
+            className="qr-permission-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="camera-permission-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <span className="qr-reader-icon">
+              <Camera size={22} />
+            </span>
+            <div>
+              <h2 id="camera-permission-title">Permitir uso da câmera?</h2>
+              <p>
+                O site solicitará acesso à câmera para ler o QR Code e
+                registrar a presença automaticamente.
+              </p>
+            </div>
+            <div className="qr-permission-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setPermissionDialogOpen(false)}
+              >
+                Agora não
+              </button>
+              <button type="button" className="btn btn-primary" onClick={openCamera}>
+                <Camera size={16} />
+                Permitir câmera
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       <form ref={formRef} action={action} className="qr-camera-form">
         <input ref={tokenRef} type="hidden" name="token" />
