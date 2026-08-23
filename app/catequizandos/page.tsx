@@ -45,7 +45,7 @@ export default async function CatechumensPage({ searchParams }: { searchParams: 
   const hasFilters = Boolean(query.q || query.status || query.classId || query.sacramentId || query.year);
 
   return <AppShell current="/catequizandos">
-    <PageHeader title="Catequizandos" description={`${rows.length} cadastro(s) encontrado(s)`} action={session.role !== "CATECHIST" ? <Link className="btn btn-primary" href="/catequizandos/novo">+ Novo catequizando</Link> : undefined} />
+    <PageHeader title="Catequizandos" description={`${rows.length} cadastro(s) encontrado(s)`} action={session.role !== "CATECHIST" ? <Link className="btn btn-primary" href="/cadastros/novo">+ Adicionar pessoa</Link> : undefined} />
     {query.sucesso && <div className="alert success" role="status">Catequizando arquivado com sucesso.</div>}
     <form className="toolbar filter-bar" aria-label="Filtros de catequizandos">
       <div className="search"><span><Search size={17} /></span><input name="q" defaultValue={query.q} placeholder="Buscar por nome..." aria-label="Buscar por nome" /></div>

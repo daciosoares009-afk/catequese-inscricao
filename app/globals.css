@@ -315,8 +315,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   font-size: 10px;
 }
 .faith-content {
-  max-width: 1480px;
-  margin: auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   padding: 18px 30px 44px;
 }
 
@@ -404,6 +405,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   transform: translateY(-2px);
   box-shadow: 0 14px 34px rgba(0,0,0,.2);
 }
+.faith-welcome-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.faith-camera-button { min-width: 198px; display: flex; align-items: center; gap: 9px; padding: 10px 13px; color: white; border: 1px solid rgba(255,255,255,.3); border-radius: 13px; background: rgba(7,25,16,.42); box-shadow: 0 10px 28px rgba(0,0,0,.14); text-decoration: none; backdrop-filter: blur(8px); transition: transform .18s ease, background .18s ease; }.faith-camera-button:hover { transform: translateY(-2px); background: rgba(7,25,16,.58); }.faith-camera-button > svg { color: #f3dfae; }.faith-camera-button strong, .faith-camera-button small { display: block; }.faith-camera-button strong { font-size: 10px; }.faith-camera-button small { max-width: 165px; margin-top: 3px; overflow: hidden; color: rgba(255,255,255,.72); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
 
 .faith-stats {
   display: grid;
@@ -750,6 +753,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     font-size: 0;
   }
   .faith-primary-button svg { width: 18px; }
+  .faith-welcome-actions { width: 100%; justify-content: flex-start; padding-right: 54px; }
+  .faith-camera-button { min-width: 0; flex: 1; }
   .faith-stats { gap: 10px; margin-top: 11px; }
   .faith-stat { min-height: 128px; padding: 15px; }
   .faith-dashboard-grid { gap: 11px; margin-top: 11px; }
@@ -1126,7 +1131,7 @@ button:disabled, .btn:disabled { opacity: .55; cursor: not-allowed; transform: n
 .profile-dropdown a:hover, .profile-dropdown button:hover { background: var(--app-primary-soft); color: var(--app-primary); }
 @keyframes dropdown-in { from { opacity: 0; transform: translateY(-5px) scale(.98); } to { opacity: 1; transform: none; } }
 
-.breadcrumbs { max-width: 1480px; display: flex; align-items: center; gap: 7px; margin: 14px auto -2px; padding: 0 30px; color: var(--app-muted); font-size: 10px; }
+.breadcrumbs { width: 100%; display: flex; align-items: center; gap: 7px; margin: 14px auto -2px; padding: 0 30px; color: var(--app-muted); font-size: 10px; }
 .breadcrumbs > span { display: flex; align-items: center; gap: 7px; }
 .breadcrumbs a { color: var(--app-muted); text-decoration: none; }.breadcrumbs a:hover { color: var(--app-primary); }
 .breadcrumbs strong { color: var(--app-primary); font-weight: 700; }
@@ -1260,6 +1265,9 @@ button:disabled, .btn:disabled { opacity: .55; cursor: not-allowed; transform: n
 .filter-year { max-width: 105px; }
 .mobile-person-card { padding: 16px; border: 1px solid var(--app-border); border-radius: var(--radius-lg); background: var(--app-surface); box-shadow: var(--shadow-sm); }
 .mobile-person-main { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 12px; margin-bottom: 14px; }.mobile-person-main strong, .mobile-person-main span, .mobile-person-main small { display: block; }.mobile-person-main > div > strong { color: var(--app-primary); font: 600 16px Georgia, serif; }.mobile-person-main > div > span { margin-top: 4px; color: var(--app-text); font-size: 10px; }.mobile-person-main > div > small { margin-top: 3px; color: var(--app-muted); font-size: 9px; }
+
+.registration-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 820px; }.registration-choice-card { min-height: 215px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 15px; padding: 22px; color: var(--app-text); border: 1px solid var(--app-border); border-radius: var(--radius-lg); background: var(--app-surface); box-shadow: var(--shadow-sm); text-decoration: none; transition: transform var(--motion-fast) ease, border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease; }.registration-choice-card:hover { transform: translateY(-2px); border-color: #c6d7cb; box-shadow: var(--shadow-md); }.registration-choice-card > svg { align-self: center; color: var(--app-primary-muted); }.registration-choice-card.disabled { opacity: .65; cursor: not-allowed; }.registration-choice-card.disabled:hover { transform: none; box-shadow: var(--shadow-sm); }.registration-choice-icon { width: 46px; height: 46px; display: grid; place-items: center; color: var(--app-primary); border-radius: 14px; background: var(--app-primary-soft); }.registration-choice-eyebrow { display: block; color: var(--app-gold); font-size: 8px; font-weight: 850; letter-spacing: .8px; text-transform: uppercase; }.registration-choice-card h2 { margin: 7px 0 0; color: var(--app-primary); font: 650 21px Georgia, serif; }.registration-choice-card p { margin: 8px 0 0; color: var(--app-muted); font-size: 10px; line-height: 1.55; }
+@media (max-width: 620px) { .registration-choice-grid { grid-template-columns: 1fr; }.registration-choice-card { min-height: 0; padding: 18px; } }
 
 .form-reveal { margin-bottom: 18px; animation: form-reveal var(--motion-normal) ease both; }
 @keyframes form-reveal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }

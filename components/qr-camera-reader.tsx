@@ -70,6 +70,10 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
 
     setStatus("requesting");
     try {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const video = videoRef.current;
+      if (!video) throw new Error("VIDEO_NOT_READY");
+
       const reader = new BrowserQRCodeReader();
       const controls = await reader.decodeFromConstraints(
         {
@@ -80,7 +84,7 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
             height: { ideal: 720 },
           },
         },
-        videoRef.current ?? undefined,
+        video,
         (result, _error, activeControls) => {
           if (!result || scannedRef.current) return;
 
@@ -102,6 +106,7 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
       );
 
       controlsRef.current = controls;
+      await video.play();
       setStatus("scanning");
     } catch (error) {
       const name = error instanceof DOMException ? error.name : "";

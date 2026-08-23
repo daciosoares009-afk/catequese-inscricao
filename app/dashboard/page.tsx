@@ -2,13 +2,13 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   BookOpen,
+  Camera,
   CalendarDays,
   ClipboardCheck,
   Clock3,
   FileText,
   MapPin,
   Plus,
-  QrCode,
   ShieldCheck,
   TriangleAlert,
   UserRoundCheck,
@@ -167,6 +167,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   });
   const chartLabels = chartMonths.map(item => item.label);
   const today = weekdayFormatter.format(new Date());
+  const scannerMeeting = upcoming[0];
 
   return (
     <AppShell current="/dashboard">
@@ -189,12 +190,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             {roleLabel[session.role]}
           </span>
         </div>
-        {session.role !== "CATECHIST" && (
-          <Link className="faith-primary-button" href="/catequizandos/novo">
-            <Plus size={18} />
-            Novo catequizando
+        <div className="faith-welcome-actions">
+          <Link className="faith-camera-button" href={scannerMeeting ? `/presencas/${scannerMeeting.id}` : "/encontros"}>
+            <Camera size={18} />
+            <span><strong>Abrir câmera</strong><small>{scannerMeeting ? `Chamada: ${scannerMeeting.class.name}` : "Escolha um encontro para iniciar"}</small></span>
           </Link>
-        )}
+          {session.role !== "CATECHIST" && (
+            <Link className="faith-primary-button" href="/cadastros/novo">
+              <Plus size={18} />
+              Adicionar pessoa
+            </Link>
+          )}
+        </div>
       </section>
 
       <section className="metrics-grid dashboard-metrics" aria-label="Indicadores principais">
@@ -205,9 +212,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <section className="quick-actions-panel">
           <div className="section-heading"><div><span>Atalhos</span><h2>Ações rápidas</h2></div></div>
           <div className="quick-actions-grid">
-            {session.role !== "CATECHIST" && <Link href="/catequizandos/novo"><span><Plus size={18} /></span><div><strong>Novo catequizando</strong><small>Cadastrar e gerar QR Code</small></div><ArrowUpRight size={15} /></Link>}
+            {session.role !== "CATECHIST" && <Link href="/cadastros/novo"><span><Plus size={18} /></span><div><strong>Adicionar pessoa</strong><small>Catequista ou catequizando</small></div><ArrowUpRight size={15} /></Link>}
             <Link href="/encontros?novo=1"><span><CalendarDays size={18} /></span><div><strong>Novo encontro</strong><small>Planejar conteúdo e chamada</small></div><ArrowUpRight size={15} /></Link>
-            <Link href="/encontros"><span><QrCode size={18} /></span><div><strong>Abrir chamada</strong><small>Ler QR Code ou registrar manualmente</small></div><ArrowUpRight size={15} /></Link>
+            <Link href={scannerMeeting ? `/presencas/${scannerMeeting.id}` : "/encontros"}><span><Camera size={18} /></span><div><strong>Abrir câmera</strong><small>{scannerMeeting ? "Ler QR Code e registrar presença" : "Escolher encontro para a chamada"}</small></div><ArrowUpRight size={15} /></Link>
             {session.role !== "CATECHIST" && <Link href="/relatorios"><span><FileText size={18} /></span><div><strong>Ver relatórios</strong><small>Acompanhar frequência das turmas</small></div><ArrowUpRight size={15} /></Link>}
           </div>
         </section>
