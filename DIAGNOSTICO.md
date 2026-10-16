@@ -1,4 +1,4 @@
-# Diagnóstico técnico — Catequese Presente
+\# Diagnóstico técnico — Catequese Presente
 
 ## Resultado da revisão
 
