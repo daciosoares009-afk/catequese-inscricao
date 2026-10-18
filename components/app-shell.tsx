@@ -14,7 +14,6 @@ import {
   ClipboardCheck,
   Home,
   LayoutDashboard,
-  LogOut,
   Menu,
   QrCode,
   Settings,
@@ -25,7 +24,6 @@ import { createContext, useContext, useEffect, useState } from "react";
 import type { Role } from "@prisma/client";
 import type { Session } from "@/lib/auth";
 import { roleLabel } from "@/lib/format";
-import { logout } from "@/app/logout/actions";
 
 type NavItem = {
   href: string;
@@ -164,7 +162,6 @@ export default function AppShell({
         <div className="faith-user">
           <span className="avatar" aria-hidden="true">{initials}</span>
           <span className="user-summary"><strong>{session.name}</strong><small>{roleLabel[session.role]}</small></span>
-          <form action={logout}><button className="signout" aria-label="Sair da conta" title="Sair"><LogOut size={17} /></button></form>
         </div>
       </div>
     </>
@@ -197,7 +194,6 @@ export default function AppShell({
                 <div className="profile-dropdown">
                   <div><strong>{session.name}</strong><small>{session.email}</small></div>
                   <Link href="/configuracoes"><Settings size={16} /> Minha conta</Link>
-                  <form action={logout}><button><LogOut size={16} /> Sair</button></form>
                 </div>
               </details>
             </div>
