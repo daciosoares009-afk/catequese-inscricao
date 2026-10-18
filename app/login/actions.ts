@@ -1,7 +1,7 @@
 "use server";
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/auth";
-import { loginSchema } from "@/validations/schemas";
+import { loginSchema, registerSchema } from "@/validations/schemas";
 import bcrypt from "bcryptjs";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -47,4 +47,32 @@ export async function loginAction(_: { error: string }, formData: FormData): Pro
     console.error("Falha ao registrar auditoria do login", error);
   }
   redirect("/dashboard");
+}
+
+type RegisterState = { error: string; success: boolean };
+
+export async function registerAction(_: RegisterState, formData: FormData): Promise<RegisterState> {
+  const parsed = registerSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return { error: issue?.message || "Confira os dados informados.", success: false };
+  }
+
+  try {
+    const existing = await prisma.user.findUnique({ where: { email: parsed.data.email }, select: { id: true } });
+    if (existing) return { error: "Este e-mail já está cadastrado.", success: false };
+
+    const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+    await prisma.user.create({
+      data: { name: parsed.data.name, email: parsed.data.email, passwordHash, role: "CATECHIST" },
+      select: { id: true },
+    });
+    return { error: "", success: true };
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
+      return { error: "Este e-mail já está cadastrado.", success: false };
+    }
+    console.error("Falha ao criar conta", error);
+    return { error: "Não foi possível criar sua conta agora. Tente novamente." , success: false };
+  }
 }

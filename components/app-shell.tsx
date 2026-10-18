@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
@@ -86,7 +87,7 @@ export default function AppShell({
   const insideShell = useContext(ShellContext);
   const pathname = usePathname();
   const [unread, setUnread] = useState(unreadNotifications);
-  const [parishName, setParishName] = useState("Comunidade paroquial");
+  const parishName = "Paróquia São João Batista";
   const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const sessionUserId = session?.userId;
@@ -99,10 +100,9 @@ export default function AppShell({
     let cancelled = false;
     fetch("/api/notificacoes/unread", { cache: "no-store" })
       .then(response => response.ok ? response.json() : null)
-      .then((data: { count?: number; parishName?: string } | null) => {
+      .then((data: { count?: number } | null) => {
         if (cancelled || !data) return;
         if (typeof data.count === "number") setUnread(data.count);
-        if (data.parishName) setParishName(data.parishName);
       })
       .catch(() => undefined);
     return () => { cancelled = true; };
@@ -140,7 +140,7 @@ export default function AppShell({
     <>
       <div className="sidebar-heading">
         <Link href="/dashboard" className="faith-brand" aria-label="Ir para o início">
-          <span className="faith-cross">✝</span>
+          <Image src="/images/logo-sao-joao.jpg" alt="Logo da Paróquia São João Batista" width={46} height={46} className="brand-logo" />
           <span className="brand-copy"><strong>Catequese Presente</strong><small>Gestão pastoral</small></span>
         </Link>
         <button className="sidebar-collapse" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menu" : "Recolher menu"} title={collapsed ? "Expandir menu" : "Recolher menu"}>

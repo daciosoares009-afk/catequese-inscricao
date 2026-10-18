@@ -33,7 +33,7 @@ export default async function CatechumenProfile({ params, searchParams }: { para
     },
   });
   if (!item) notFound();
-  const qrDataUrl = item.qrCode?.active ? await QRCode.toDataURL(item.qrCode.token, { width: 520, margin: 2, errorCorrectionLevel: "H", color: { dark: "#173d2eff", light: "#ffffffff" } }) : "";
+  const qrDataUrl = item.qrCode?.active ? await QRCode.toDataURL(item.qrCode.token, { width: 520, margin: 2, errorCorrectionLevel: "H", color: { dark: "#651b26ff", light: "#ffffffff" } }) : "";
   const activeEnrollment = item.enrollments.find(enrollment => enrollment.status === "ACTIVE");
   const attendance = frequencySummary(item.attendances.map(record => record.status));
 

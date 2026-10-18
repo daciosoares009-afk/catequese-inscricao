@@ -1,6 +1,15 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({ email: z.email("E-mail inválido"), password: z.string().min(6, "Senha inválida") });
+export const registerSchema = z.object({
+  name: z.string().trim().min(3, "Informe seu nome completo.").max(160, "O nome deve ter até 160 caracteres."),
+  email: z.email("Informe um e-mail válido.").transform((email) => email.toLowerCase()),
+  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres.").max(72, "A senha deve ter até 72 caracteres."),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  path: ["confirmPassword"],
+  message: "As senhas não correspondem.",
+});
 export const catechumenSchema = z.object({
   fullName: z.string().trim().min(3, "Informe o nome completo").max(160),
   status: z.enum(["ACTIVE", "COMPLETED", "TRANSFERRED", "DROPOUT", "WAITING", "INACTIVE"]).default("WAITING"),

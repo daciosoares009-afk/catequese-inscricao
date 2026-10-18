@@ -1,4 +1,4 @@
-import { AlertTriangle, BarChart3, Download, Search, TrendingUp, UserCheck, Users } from "lucide-react";
+import { AlertTriangle, BarChart3, Download, FileDown, Search, TrendingUp, UserCheck, Users } from "lucide-react";
 import AppShell from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
@@ -32,9 +32,16 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const atRisk = summaries.filter(item => item.summary.total > 0 && item.summary.rate < 75);
   const noRecords = summaries.filter(item => item.summary.total === 0).length;
   const hasFilters = Boolean(query.classId || query.q || query.sacramentId || query.inicio || query.fim);
+  const exportParams = new URLSearchParams();
+  if (query.classId) exportParams.set("classId", query.classId);
+  if (query.q) exportParams.set("q", query.q);
+  if (query.sacramentId) exportParams.set("sacramentId", query.sacramentId);
+  if (query.inicio) exportParams.set("inicio", query.inicio);
+  if (query.fim) exportParams.set("fim", query.fim);
+  const pdfHref = `/api/relatorios/frequencia/pdf${exportParams.size ? `?${exportParams.toString()}` : ""}`;
 
   return <AppShell current="/relatorios">
-    <PageHeader title="Relatórios" description="Frequência consolidada com dados dos encontros encerrados" action={<div className="page-action-group"><a className="btn btn-secondary" href={`/api/relatorios/frequencia${query.classId ? `?classId=${query.classId}` : ""}`}><Download size={15} /> Exportar CSV</a><PrintButton label="Imprimir" /></div>} />
+    <PageHeader title="Relatórios" description="Frequência consolidada com dados dos encontros encerrados" action={<div className="page-action-group"><a className="btn btn-secondary" href={pdfHref}><FileDown size={15} /> Exportar PDF</a><a className="btn btn-secondary" href={`/api/relatorios/frequencia${query.classId ? `?classId=${encodeURIComponent(query.classId)}` : ""}`}><Download size={15} /> Exportar CSV</a><PrintButton label="Imprimir" /></div>} />
     <form className="toolbar filter-bar no-print" aria-label="Filtros do relatório"><div className="search"><span><Search size={16} /></span><input name="q" defaultValue={query.q} placeholder="Buscar catequizando..." /></div><div className="filter-field"><label htmlFor="report-class">Turma</label><select id="report-class" name="classId" defaultValue={query.classId || ""}><option value="">Todas as turmas</option>{classes.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div><div className="filter-field"><label htmlFor="report-sacrament">Sacramento</label><select id="report-sacrament" name="sacramentId" defaultValue={query.sacramentId || ""}><option value="">Todos</option>{sacraments.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div><div className="filter-field"><label htmlFor="report-start">De</label><input id="report-start" name="inicio" type="date" defaultValue={query.inicio} /></div><div className="filter-field"><label htmlFor="report-end">Até</label><input id="report-end" name="fim" type="date" defaultValue={query.fim} /></div><button className="btn btn-primary">Aplicar</button>{hasFilters && <a href="/relatorios" className="btn btn-secondary">Limpar</a>}</form>
 
     <section className="metrics-grid report-metrics"><StatCard icon={Users} label="Catequizandos" value={summaries.length} context="Matrículas no filtro" /><StatCard icon={TrendingUp} tone="blue" label="Frequência média" value={`${overall.rate}%`} context={`${overall.total} registros considerados`} /><StatCard icon={AlertTriangle} tone="rose" label="Abaixo de 75%" value={atRisk.length} context="Precisam de acompanhamento" /><StatCard icon={UserCheck} tone="gold" label="Sem registros" value={noRecords} context="Ainda sem encontro encerrado" /></section>

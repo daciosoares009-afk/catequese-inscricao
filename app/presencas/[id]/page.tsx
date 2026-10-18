@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { AlertCircle, CheckCircle2, ClipboardCheck, Users } from "lucide-react";
+import { AlertCircle, CheckCircle2, ClipboardCheck, FileDown, Users } from "lucide-react";
 import AppShell from "@/components/app-shell";
 import { AttendanceSearch } from "@/components/attendance-search";
 import { PageHeader } from "@/components/page-header";
@@ -46,7 +46,7 @@ export default async function AttendancePage({ params, searchParams }: { params:
     {!locked && <div className="attendance-tools"><AttendanceSearch /><form action={markAllPresent.bind(null, id)}><ConfirmSubmitButton className="btn btn-primary" message="Marcar todos os catequizandos desta turma como presentes?" pendingLabel="Registrando..."><Users size={16} /> Marcar todos presentes</ConfirmSubmitButton></form></div>}
     {!locked && <QrCameraReader meetingId={id} />}
 
-    <section className="card attendance-roster"><div className="card-head"><div><h2>Lista da turma</h2><small>{pending ? `${pending} registro(s) ainda pendente(s)` : "Chamada completa"}</small></div><span className={`badge ${pending ? "warn" : ""}`}>{total} catequizandos</span></div>
+    <section className="card attendance-roster"><div className="card-head"><div><h2>Lista da turma</h2><small>{pending ? `${pending} registro(s) ainda pendente(s)` : "Chamada completa"}</small></div><div className="page-action-group"><a className="btn btn-secondary" href={`/api/presencas/${encodeURIComponent(id)}/pdf`}><FileDown size={15} /> Exportar PDF</a><span className={`badge ${pending ? "warn" : ""}`}>{total} catequizandos</span></div></div>
       <div className="attendance-list">
         {meeting.class.enrollments.map(enrollment => {
           const current = enrollment.catechumen.attendances[0];
