@@ -1,5 +1,7 @@
 \# Diagnóstico técnico — Catequese Presente
 
+> **Aviso de acesso público:** a autenticação foi desativada a pedido. Qualquer visitante pode acessar os dados e operar o sistema com permissões de administrador. Não publique este estado com dados reais ou pessoais; restaure a autenticação antes de disponibilizar o sistema na internet.
+
 ## Resultado da revisão
 
 O projeto compila e o Prisma Schema é válido. A revisão encontrou problemas que não apareciam no build, principalmente autorização horizontal, consistência dos relatórios e validação de ações enviadas diretamente ao servidor.

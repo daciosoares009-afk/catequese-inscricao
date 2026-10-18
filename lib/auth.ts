@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { redirect } from "next/navigation";
 import type { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
@@ -29,6 +30,8 @@ export const getSession = cache(async (): Promise<Session> => {
   };
 });
 
-export async function requireSession(_roles?: Role[]) {
-  return getSession();
+export async function requireSession(roles?: Role[]) {
+  const session = await getSession();
+  if (roles && !roles.includes(session.role)) redirect("/dashboard?erro=sem-permissao");
+  return session;
 }
