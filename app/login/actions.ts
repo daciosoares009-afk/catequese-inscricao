@@ -33,10 +33,16 @@ export async function login(formData: FormData) {
     redirect(`/login?erro=bloqueado&aguarde=${limit.retryAfterSeconds}`);
   }
 
-  const user = await prisma.user.findFirst({
-    where: { email, active: true, deletedAt: null },
-    select: { id: true, passwordHash: true },
-  });
+  let user;
+  try {
+    user = await prisma.user.findFirst({
+      where: { email, active: true, deletedAt: null },
+      select: { id: true, passwordHash: true },
+    });
+  } catch (error) {
+    console.error("Falha ao consultar usuário durante o login:", error);
+    redirect("/login?erro=banco-indisponivel");
+  }
 
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     registerLoginFailure(email, ip);

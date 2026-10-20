@@ -8,6 +8,7 @@ const messages: Record<string, string> = {
   "dados-invalidos": "Informe um e-mail válido e sua senha.",
   credenciais: "E-mail ou senha incorretos.",
   bloqueado: "Muitas tentativas. Aguarde um pouco antes de tentar novamente.",
+  "banco-indisponivel": "Não foi possível conectar ao banco agora. Tente novamente em instantes.",
 };
 
 export default async function LoginPage({
