@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowUpRight,
   BookOpen,
@@ -178,6 +179,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <section className="faith-welcome">
         <div className="faith-welcome-photo" />
         <div className="faith-welcome-overlay" />
+        <div className="faith-welcome-mark" aria-label="Paróquia São João Batista">
+          <Image src="/images/logo-sao-joao.jpg" alt="" width={52} height={52} priority />
+        </div>
         <div className="faith-welcome-content">
           <p className="faith-eyebrow">{today}</p>
           <h1>Paz e bem!</h1>
