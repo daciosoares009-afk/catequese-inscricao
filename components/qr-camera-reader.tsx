@@ -89,7 +89,7 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
           if (!result || scannedRef.current) return;
 
           const token = result.getText().trim();
-          if (token.length < 32 || token.length > 128) {
+          if (!/^[A-Za-z0-9_-]{43}$/.test(token)) {
             setMessage("Este QR Code não pertence ao sistema.");
             return;
           }
@@ -269,8 +269,8 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
           <input
             name="token"
             placeholder="Token seguro do QR Code"
-            minLength={32}
-            maxLength={128}
+            minLength={43}
+            maxLength={43}
             required
           />
           <button className="btn btn-secondary">Confirmar</button>

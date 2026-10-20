@@ -17,15 +17,18 @@ export async function GET(
   if (!(await canAccessCatechumen(session, id))) {
     return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
   }
-  const item = await prisma.catechumen.findFirst({
-    where: { id, deletedAt: null },
-    select: { fullName: true, qrCode: { select: { token: true } } },
-  });
-  if (!item?.qrCode) {
+  const [item, qrCode] = await Promise.all([
+    prisma.catechumen.findFirst({ where: { id, deletedAt: null, status: { not: "INACTIVE" } }, select: { fullName: true } }),
+    prisma.qRCodeToken.findFirst({
+      where: { catechumenId: id, active: true, expiresAt: { gt: new Date() }, catechumen: { is: { deletedAt: null, status: { not: "INACTIVE" } } } },
+      select: { token: true },
+    }),
+  ]);
+  if (!item || !qrCode) {
     return NextResponse.json({ error: "QR Code não disponível" }, { status: 404 });
   }
 
-  const qrDataUrl = await QRCode.toDataURL(item.qrCode.token, {
+  const qrDataUrl = await QRCode.toDataURL(qrCode.token, {
     width: 300,
     margin: 2,
     errorCorrectionLevel: "H",

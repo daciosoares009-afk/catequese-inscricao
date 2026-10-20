@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -101,6 +101,8 @@ model Parish {
   id          String       @id @default(cuid())
   name        String
   city        String?
+  address     String?
+  priestName  String?
   logoUrl     String?
   communities Community[]
   classes     Class[]
@@ -441,7 +443,7 @@ model QRCodeToken {
   token        String     @unique @db.VarChar(128)
   active       Boolean    @default(true)
   generatedAt  DateTime   @default(now())
-  expiresAt    DateTime?
+  expiresAt    DateTime
   catechumen   Catechumen @relation(fields: [catechumenId], references: [id])
 
   @@index([token, active])

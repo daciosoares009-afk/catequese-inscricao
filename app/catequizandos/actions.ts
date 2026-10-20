@@ -1,10 +1,10 @@
 "use server";
-import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 import { catechumenSchema } from "@/validations/schemas";
+import { createQrCodeToken } from "@/lib/qr-code";
 
 export async function createCatechumen(formData: FormData) {
   const session = await requireSession(["ADMIN", "COORDINATOR"]);
@@ -33,7 +33,7 @@ export async function createCatechumen(formData: FormData) {
         status: "ACTIVE",
         parishId: targetClass.parishId,
         communityId: targetClass.communityId,
-        qrCode: { create: { token: randomBytes(32).toString("base64url") } },
+        qrCode: { create: createQrCodeToken() },
       },
     });
     await tx.enrollment.create({
@@ -99,7 +99,7 @@ export async function regenerateQr(id: string) {
   const catechumen = await prisma.catechumen.findFirst({ where: { id, deletedAt: null }, select: { id: true } });
   if (!catechumen) redirect("/catequizandos?erro=nao-encontrado");
   await prisma.$transaction([
-    prisma.qRCodeToken.upsert({ where: { catechumenId: id }, create: { catechumenId: id, token: randomBytes(32).toString("base64url") }, update: { token: randomBytes(32).toString("base64url"), generatedAt: new Date(), active: true, expiresAt: null } }),
+    prisma.qRCodeToken.upsert({ where: { catechumenId: id }, create: { catechumenId: id, ...createQrCodeToken() }, update: { ...createQrCodeToken(), active: true } }),
     prisma.auditLog.create({ data: { userId: session.userId, action: "REGENERATE_QR", entity: "Catechumen", entityId: id } }),
   ]);
   revalidatePath(`/catequizandos/${id}`);

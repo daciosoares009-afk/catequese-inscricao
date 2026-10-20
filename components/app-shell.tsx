@@ -14,6 +14,7 @@ import {
   ClipboardCheck,
   Home,
   LayoutDashboard,
+  LogOut,
   Menu,
   QrCode,
   Settings,
@@ -24,6 +25,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import type { Role } from "@prisma/client";
 import type { Session } from "@/lib/auth";
 import { roleLabel } from "@/lib/format";
+import { logout } from "@/app/logout/actions";
 
 type NavItem = {
   href: string;
@@ -139,7 +141,7 @@ export default function AppShell({
       <div className="sidebar-heading">
         <Link href="/dashboard" className="faith-brand" aria-label="Ir para o início">
           <Image src="/images/logo-sao-joao.jpg" alt="Logo da Paróquia São João Batista" width={46} height={46} className="brand-logo" />
-          <span className="brand-copy"><strong>Catequese Presente</strong><small>Gestão pastoral</small></span>
+          <span className="brand-copy"><strong>PSJB-Crisma</strong><small>Gestão pastoral</small></span>
         </Link>
         <button className="sidebar-collapse" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menu" : "Recolher menu"} title={collapsed ? "Expandir menu" : "Recolher menu"}>
           {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
@@ -194,6 +196,9 @@ export default function AppShell({
                 <div className="profile-dropdown">
                   <div><strong>{session.name}</strong><small>{session.email}</small></div>
                   <Link href="/configuracoes"><Settings size={16} /> Minha conta</Link>
+                  <form action={logout}>
+                    <button type="submit"><LogOut size={16} /> Sair</button>
+                  </form>
                 </div>
               </details>
             </div>

@@ -1,4 +1,4 @@
-# Catequese Presente
+# PSJB-Crisma
 
 Sistema web para gestão pastoral de catequese, construído com Next.js,
 TypeScript, PostgreSQL, Prisma e Tailwind CSS.
@@ -25,9 +25,9 @@ TypeScript, PostgreSQL, Prisma e Tailwind CSS.
 
 ## Conexão com o Supabase
 
-O sistema continua usando Prisma para acessar o PostgreSQL hospedado pelo
-Supabase. A autenticação permanece no próprio sistema com bcrypt e sessão
-HTTP-only; ela não usa Supabase Auth.
+O sistema usa Prisma para acessar o PostgreSQL hospedado pelo Supabase.
+O login valida o e-mail e o hash bcrypt do usuário nessa base e cria uma
+sessão assinada em cookie HTTP-only; ele não usa Supabase Auth.
 
 1. No painel do Supabase, abra **Connect**.
 2. Copie a URL **Transaction pooler** (porta `6543`) para `DATABASE_URL`.
@@ -35,6 +35,8 @@ HTTP-only; ela não usa Supabase Auth.
 4. Mantenha `pgbouncer=true`, `connection_limit=1` e `sslmode=require` na `DATABASE_URL`.
 5. Mantenha `sslmode=require` na `DIRECT_URL`.
 6. Se a senha contiver símbolos reservados, codifique-os para URL.
+7. Cadastre os usuários com `npm run db:seed` ou pela administração. Cada
+   usuário entra com o e-mail e a senha definidos no cadastro.
 
 Nunca exponha essas URLs em código do navegador, commits ou variáveis
 prefixadas com `NEXT_PUBLIC_`.
@@ -42,6 +44,8 @@ prefixadas com `NEXT_PUBLIC_`.
 ## Instalação
 
 1. Copie `.env.example` para `.env` e ajuste `DATABASE_URL`, `DIRECT_URL` e `AUTH_SECRET`.
+   Preencha também `APP_URL_PRODUCTION` e `APP_URL_TEST` com os endereços dos
+   ambientes publicados de produção e teste.
 2. Instale as dependências com `npm install`.
 3. Confira a conexão com `npm run db:check`.
 4. Aplique as migrações com `npm run db:deploy`.
@@ -72,7 +76,9 @@ usam `deletedAt`.
 
 ## Deploy
 
-Configure `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET` e `NEXT_PUBLIC_APP_URL`,
+Configure `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET` (aleatória, com pelo
+menos 32 caracteres), `NEXT_PUBLIC_APP_URL`, `APP_URL_PRODUCTION` e
+`APP_URL_TEST`,
 execute `npm run db:deploy`, depois `npm run build` e `npm start`. Em Vercel,
 use o mesmo conjunto de variáveis e execute `npm run db:deploy` no processo de
 release.

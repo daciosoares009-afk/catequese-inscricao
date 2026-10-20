@@ -9,6 +9,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 import { catechistCatechumenFilter, catechistClassFilter } from "@/lib/access";
+import { isQrCodeUsable } from "@/lib/qr-code";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ export default async function CatechumensPage({ searchParams }: { searchParams: 
         id: true,
         fullName: true,
         status: true,
-        qrCode: { select: { id: true, active: true } },
+        qrCode: { select: { id: true, active: true, expiresAt: true } },
         enrollments: { where: { status: "ACTIVE" }, select: { class: { select: { id: true, name: true, year: true, sacrament: { select: { name: true } } } } }, take: 1 },
       },
       orderBy: { fullName: "asc" },
@@ -59,19 +60,19 @@ export default async function CatechumensPage({ searchParams }: { searchParams: 
 
     <section className="card table-wrap desktop-table" aria-label="Lista de catequizandos">
       <table className="table"><thead><tr><th>Catequizando</th><th>Turma atual</th><th>Sacramento</th><th>Status</th><th>QR Code</th></tr></thead><tbody>
-        {rows.map(row => { const enrollment = row.enrollments[0]; return <tr key={row.id}>
+        {rows.map(row => { const enrollment = row.enrollments[0]; const qrUsable = isQrCodeUsable(row.qrCode); return <tr key={row.id}>
           <td><div className="person"><UserAvatar name={row.fullName} /><strong>{row.fullName}</strong></div></td>
           <td>{enrollment?.class.name || <span className="text-muted">Sem turma</span>}</td>
           <td>{enrollment?.class.sacrament.name || "—"}</td>
           <td><StatusBadge status={row.status} /></td>
-          <td><Link href={`/catequizandos/${row.id}`} className="btn btn-secondary"><QrCode size={15} />{row.qrCode?.active ? "Ver QR Code" : "Gerar QR Code"}</Link></td>
+          <td><Link href={`/catequizandos/${row.id}`} className="btn btn-secondary"><QrCode size={15} />{qrUsable ? "Ver QR Code" : "Gerar QR Code"}</Link></td>
         </tr>; })}
       </tbody></table>
       {!rows.length && <EmptyState icon={UserRoundSearch} title="Nenhum catequizando encontrado" description={hasFilters ? "Tente remover um filtro ou pesquisar outro nome." : "Cadastre o primeiro catequizando para começar."} action={!hasFilters && session.role !== "CATECHIST" ? <Link className="btn btn-primary" href="/catequizandos/novo">Novo catequizando</Link> : undefined} />}
     </section>
 
     <div className="mobile-card-list" aria-label="Lista de catequizandos em cartões">
-      {rows.map(row => { const enrollment = row.enrollments[0]; return <article className="mobile-person-card" key={row.id}><div className="mobile-person-main"><UserAvatar name={row.fullName} size="lg" /><div><strong>{row.fullName}</strong><span>{enrollment?.class.name || "Sem turma"}</span><small>{enrollment?.class.sacrament.name || "Sacramento não definido"}</small></div><StatusBadge status={row.status} /></div><Link href={`/catequizandos/${row.id}`} className="btn btn-secondary"><QrCode size={16} />{row.qrCode?.active ? "Visualizar QR Code" : "Gerar QR Code"}</Link></article>; })}
+      {rows.map(row => { const enrollment = row.enrollments[0]; const qrUsable = isQrCodeUsable(row.qrCode); return <article className="mobile-person-card" key={row.id}><div className="mobile-person-main"><UserAvatar name={row.fullName} size="lg" /><div><strong>{row.fullName}</strong><span>{enrollment?.class.name || "Sem turma"}</span><small>{enrollment?.class.sacrament.name || "Sacramento não definido"}</small></div><StatusBadge status={row.status} /></div><Link href={`/catequizandos/${row.id}`} className="btn btn-secondary"><QrCode size={16} />{qrUsable ? "Visualizar QR Code" : "Gerar QR Code"}</Link></article>; })}
       {!rows.length && <section className="card"><EmptyState icon={UserRoundSearch} title="Nenhum resultado" description="Revise os filtros aplicados." /></section>}
     </div>
   </AppShell>;

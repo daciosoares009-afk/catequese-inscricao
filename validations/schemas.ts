@@ -3,9 +3,9 @@ import { z } from "zod";
 export const loginSchema = z.object({ email: z.email("E-mail inválido"), password: z.string().min(6, "Senha inválida") });
 export const registerSchema = z.object({
   name: z.string().trim().min(3, "Informe seu nome completo.").max(160, "O nome deve ter até 160 caracteres."),
-  email: z.email("Informe um e-mail válido.").transform((email) => email.toLowerCase()),
-  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres.").max(72, "A senha deve ter até 72 caracteres."),
-  confirmPassword: z.string(),
+  email: z.string().trim().email("Informe um e-mail válido.").transform((email) => email.toLowerCase()),
+  password: z.string().min(12, "A senha deve ter pelo menos 12 caracteres.").max(72, "A senha deve ter até 72 caracteres.").refine((password) => new TextEncoder().encode(password).length <= 72, "A senha excede o limite permitido."),
+  confirmPassword: z.string().min(1, "Confirme sua senha."),
 }).refine((data) => data.password === data.confirmPassword, {
   path: ["confirmPassword"],
   message: "As senhas não correspondem.",

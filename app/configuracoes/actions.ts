@@ -33,6 +33,56 @@ export async function createParish(formData: FormData) {
   redirect("/configuracoes?sucesso=paroquia");
 }
 
+export async function updateParishDetails(formData: FormData) {
+  const session = await requireSession(["ADMIN"]);
+  const parsed = z.object({
+    parishId: z.string().min(1).max(64),
+    city: z.string().trim().min(2).max(120),
+    address: z.string().trim().min(5).max(240),
+    priestName: z.string().trim().min(3).max(160),
+  }).safeParse(Object.fromEntries(formData));
+  if (!parsed.success) redirect("/configuracoes?erro=dados-paroquia");
+
+  const parish = await prisma.parish.findFirst({
+    where: { id: parsed.data.parishId, deletedAt: null },
+    select: { id: true, name: true, city: true, address: true, priestName: true },
+  });
+  if (!parish) redirect("/configuracoes?erro=paroquia");
+
+  const duplicate = await prisma.parish.findUnique({
+    where: {
+      name_city: {
+        name: parish.name,
+        city: parsed.data.city,
+      },
+    },
+    select: { id: true },
+  });
+  if (duplicate && duplicate.id !== parish.id) {
+    redirect("/configuracoes?erro=paroquia-existente");
+  }
+
+  const { parishId, ...data } = parsed.data;
+  await prisma.$transaction(async tx => {
+    await tx.parish.update({ where: { id: parishId }, data });
+    await tx.auditLog.create({
+      data: {
+        userId: session.userId,
+        action: "UPDATE",
+        entity: "Parish",
+        entityId: parishId,
+        before: {
+          city: parish.city,
+          address: parish.address,
+          priestName: parish.priestName,
+        },
+        after: data,
+      },
+    });
+  });
+  redirect("/configuracoes?sucesso=paroquia");
+}
+
 export async function createCommunity(formData: FormData) {
   const session = await requireSession(["ADMIN"]);
   const parsed = z.object({

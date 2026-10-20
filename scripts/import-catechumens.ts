@@ -1,7 +1,7 @@
-import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { PrismaClient } from "@prisma/client";
+import { createQrCodeToken } from "../lib/qr-code";
 
 const prisma = new PrismaClient();
 
@@ -73,7 +73,7 @@ async function main() {
         fullName,
         status: "WAITING",
         qrCode: {
-          create: { token: randomBytes(32).toString("base64url") },
+          create: createQrCodeToken(),
         },
       },
     });

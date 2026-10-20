@@ -1,6 +1,8 @@
-\# Diagnóstico técnico — Catequese Presente
+# Diagnóstico técnico — PSJB-Crisma
 
-> **Aviso de acesso público:** a autenticação foi desativada a pedido. Qualquer visitante pode acessar os dados e operar o sistema com permissões de administrador. Não publique este estado com dados reais ou pessoais; restaure a autenticação antes de disponibilizar o sistema na internet.
+> **Autenticação:** o login por e-mail e senha foi restaurado. Antes de publicar,
+> configure `AUTH_SECRET` com uma chave aleatória de pelo menos 32 caracteres
+> e confirme o acesso ao PostgreSQL do Supabase.
 
 ## Resultado da revisão
 

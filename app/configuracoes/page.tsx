@@ -6,6 +6,7 @@ import {
   changeOwnPassword,
   createCommunity,
   createParish,
+  updateParishDetails,
 } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 const errors: Record<string, string> = {
   paroquia: "Informe o nome e a cidade da paróquia.",
   "paroquia-existente": "Esta paróquia já está cadastrada.",
+  "dados-paroquia": "Informe uma cidade, um endereço e o nome do pároco válidos.",
   comunidade: "Informe uma comunidade e uma paróquia válidas.",
   "comunidade-existente": "Esta comunidade já está cadastrada.",
   senha: "A nova senha deve ter 12 caracteres e coincidir com a confirmação.",
@@ -58,9 +60,44 @@ export default async function SettingsPage({
           </form>
           <div className="list" style={{ marginTop: 18 }}>
             {parishes.map(item => (
-              <div className="list-row" key={item.id}>
-                <div className="grow"><strong>{item.name}</strong><small>{item.city}</small></div>
-                <span className="badge">Ativa</span>
+              <div className="list-row" key={item.id} style={{ display: "block" }}>
+                <div className="grow" style={{ marginBottom: 12 }}>
+                  <strong>{item.name}</strong>
+                  <small>{item.city}</small>
+                </div>
+                <form action={updateParishDetails} className="form-grid">
+                  <input type="hidden" name="parishId" value={item.id} />
+                  <div className="field">
+                    <label htmlFor={`parish-city-${item.id}`}>Cidade</label>
+                    <input
+                      id={`parish-city-${item.id}`}
+                      name="city"
+                      defaultValue={item.name === "Paróquia São João Batista" ? "Osasco" : item.city ?? ""}
+                      required
+                    />
+                  </div>
+                  <div className="field full">
+                    <label htmlFor={`parish-address-${item.id}`}>Endereço</label>
+                    <input
+                      id={`parish-address-${item.id}`}
+                      name="address"
+                      defaultValue={item.address ?? (item.name === "Paróquia São João Batista" ? "Praça Professor Anézio Cabral, 355, Osasco, São Paulo, 06226-010" : "")}
+                      maxLength={240}
+                      required
+                    />
+                  </div>
+                  <div className="field full">
+                    <label htmlFor={`parish-priest-${item.id}`}>Pároco</label>
+                    <input
+                      id={`parish-priest-${item.id}`}
+                      name="priestName"
+                      defaultValue={item.priestName ?? (item.name === "Paróquia São João Batista" ? "Pe. Leonardo Sousa" : "")}
+                      maxLength={160}
+                      required
+                    />
+                  </div>
+                  <button className="btn btn-primary">Salvar dados paroquiais</button>
+                </form>
               </div>
             ))}
           </div>

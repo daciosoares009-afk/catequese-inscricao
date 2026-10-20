@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-unused-expressions */
 import { PrismaClient, Role, AttendanceStatus, AttendanceMethod } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { randomBytes } from "crypto";
+import { createQrCodeToken } from "../lib/qr-code";
 const prisma=new PrismaClient();
 async function main(){
   const initialPassword = process.env.ADMIN_INITIAL_PASSWORD;
@@ -13,7 +13,10 @@ async function main(){
   const coordinator=await prisma.user.upsert({where:{email:"coordenador@catequesepresente.com"},update:{},create:{name:"Paulo Coordenador",email:"coordenador@catequesepresente.com",passwordHash,role:Role.COORDINATOR}});
   const cat1=await prisma.user.upsert({where:{email:"maria@catequesepresente.com"},update:{},create:{name:"Maria Oliveira",email:"maria@catequesepresente.com",passwordHash,role:Role.CATECHIST,catechist:{create:{phone:"85999990001"}}},include:{catechist:true}});
   const cat2=await prisma.user.upsert({where:{email:"jose@catequesepresente.com"},update:{},create:{name:"José Santos",email:"jose@catequesepresente.com",passwordHash,role:Role.CATECHIST,catechist:{create:{phone:"85999990002"}}},include:{catechist:true}});
-  const parish=await prisma.parish.upsert({where:{name_city:{name:"Paróquia São João Batista",city:"Fortaleza"}},update:{},create:{name:"Paróquia São João Batista",city:"Fortaleza"}});
+  const parishRecord=await prisma.parish.findFirst({where:{name:"Paróquia São João Batista",deletedAt:null},orderBy:{createdAt:"asc"},select:{id:true}});
+  const parish=parishRecord
+    ? await prisma.parish.update({where:{id:parishRecord.id},data:{city:"Osasco",address:"Praça Professor Anézio Cabral, 355, Osasco, São Paulo, 06226-010",priestName:"Pe. Leonardo Sousa"}})
+    : await prisma.parish.create({data:{name:"Paróquia São João Batista",city:"Osasco",address:"Praça Professor Anézio Cabral, 355, Osasco, São Paulo, 06226-010",priestName:"Pe. Leonardo Sousa"}});
   const matriz=await prisma.community.upsert({where:{parishId_name:{parishId:parish.id,name:"Comunidade Matriz"}},update:{},create:{name:"Comunidade Matriz",parishId:parish.id}});
   const fatima=await prisma.community.upsert({where:{parishId_name:{parishId:parish.id,name:"Nossa Senhora de Fátima"}},update:{},create:{name:"Nossa Senhora de Fátima",parishId:parish.id}});
   const batismo=await prisma.sacrament.upsert({where:{name:"Batismo"},update:{},create:{name:"Batismo",description:"Iniciação à vida cristã"}});
@@ -32,7 +35,7 @@ async function main(){
     {name:"Miguel Costa",birth:"2012-11-08",classId:cls2.id,communityId:fatima.id,guardian:"Fernanda Costa",phone:"85988881004"}
   ];
   const students=[];
-  for(const p of people){const existing=await prisma.catechumen.findFirst({where:{fullName:p.name,birthDate:new Date(`${p.birth}T12:00:00Z`)}});const student=existing||await prisma.catechumen.create({data:{fullName:p.name,birthDate:new Date(`${p.birth}T12:00:00Z`),status:"ACTIVE",parishId:parish.id,communityId:p.communityId,city:"Fortaleza",joinedAt:new Date("2026-02-01T12:00:00Z"),qrCode:{create:{token:randomBytes(32).toString("base64url")}}}});const guardian=await prisma.guardian.upsert({where:{cpf:`SEED-${p.phone}`},update:{},create:{fullName:p.guardian,cpf:`SEED-${p.phone}`,phone:p.phone,whatsapp:p.phone,allowMessages:true}});await prisma.catechumenGuardian.upsert({where:{catechumenId_guardianId:{catechumenId:student.id,guardianId:guardian.id}},update:{},create:{catechumenId:student.id,guardianId:guardian.id,relationship:"Responsável",isPrimary:true,isEmergency:true}});await prisma.enrollment.upsert({where:{catechumenId_classId:{catechumenId:student.id,classId:p.classId}},update:{status:"ACTIVE"},create:{catechumenId:student.id,classId:p.classId}});students.push(student)}
+  for(const p of people){const existing=await prisma.catechumen.findFirst({where:{fullName:p.name,birthDate:new Date(`${p.birth}T12:00:00Z`)}});const student=existing||await prisma.catechumen.create({data:{fullName:p.name,birthDate:new Date(`${p.birth}T12:00:00Z`),status:"ACTIVE",parishId:parish.id,communityId:p.communityId,city:"Fortaleza",joinedAt:new Date("2026-02-01T12:00:00Z"),qrCode:{create:createQrCodeToken()}}});const guardian=await prisma.guardian.upsert({where:{cpf:`SEED-${p.phone}`},update:{},create:{fullName:p.guardian,cpf:`SEED-${p.phone}`,phone:p.phone,whatsapp:p.phone,allowMessages:true}});await prisma.catechumenGuardian.upsert({where:{catechumenId_guardianId:{catechumenId:student.id,guardianId:guardian.id}},update:{},create:{catechumenId:student.id,guardianId:guardian.id,relationship:"Responsável",isPrimary:true,isEmergency:true}});await prisma.enrollment.upsert({where:{catechumenId_classId:{catechumenId:student.id,classId:p.classId}},update:{status:"ACTIVE"},create:{catechumenId:student.id,classId:p.classId}});students.push(student)}
   const meeting=await prisma.meeting.findFirst({where:{classId:cls1.id,theme:"Jesus nos reúne"}})||await prisma.meeting.create({data:{classId:cls1.id,date:new Date("2026-07-18T12:00:00Z"),startTime:"09:00",endTime:"10:30",theme:"Jesus nos reúne",content:"A comunidade como família de fé",responsibleId:cat1.id,status:"CLOSED"}});
   await prisma.meeting.findFirst({where:{classId:cls1.id,theme:"A Palavra de Deus"}})||await prisma.meeting.create({data:{classId:cls1.id,date:new Date("2026-07-25T12:00:00Z"),startTime:"09:00",endTime:"10:30",theme:"A Palavra de Deus",responsibleId:cat1.id,status:"SCHEDULED"}});
   for(let i=0;i<2;i++)await prisma.attendance.upsert({where:{catechumenId_meetingId:{catechumenId:students[i].id,meetingId:meeting.id}},update:{},create:{catechumenId:students[i].id,classId:cls1.id,meetingId:meeting.id,status:i===0?AttendanceStatus.PRESENT:AttendanceStatus.JUSTIFIED,method:AttendanceMethod.MANUAL,recordedById:coordinator.id}});

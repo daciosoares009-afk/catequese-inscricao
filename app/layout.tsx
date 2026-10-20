@@ -6,7 +6,7 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Catequese Presente",
+  title: "PSJB-Crisma",
   description: "Gestão pastoral de catequese, turmas e frequência.",
 };
 
