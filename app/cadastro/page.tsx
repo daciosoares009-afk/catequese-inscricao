@@ -16,50 +16,70 @@ export default async function RegisterPage({
 
   return (
     <main className="login-page">
-      <section className="login-card" aria-labelledby="register-title">
-        <Image
-          src="/images/logo-sao-joao.jpg"
-          alt="Paróquia São João Batista"
-          width={72}
-          height={72}
-          className="login-logo"
-          priority
-        />
-        <span className="login-eyebrow">Paróquia São João Batista</span>
-        <h1 id="register-title">Criar conta</h1>
-        <p className="login-description">
-          Solicite acesso à equipe pastoral. Um administrador liberará sua conta.
-        </p>
+      <section className="login-card register-card" aria-labelledby="register-title">
+        <header className="register-header">
+          <div className="register-brand">
+            <Image
+              src="/images/logo-sao-joao.jpg"
+              alt=""
+              width={44}
+              height={44}
+              className="login-logo"
+              priority
+            />
+            <span>Paróquia São João Batista<small>Pastoral da Crisma</small></span>
+          </div>
+          <div className="register-heading">
+            <span className="login-eyebrow">Solicitação de acesso</span>
+            <h1 id="register-title">Criar conta</h1>
+            <p>Informe seus dados para solicitar acesso à equipe pastoral.</p>
+          </div>
+        </header>
 
-        {erro && (
-          <p className="login-error" role="alert">
-            {messages[erro] || "Não foi possível criar a conta. Tente novamente."}
-          </p>
-        )}
+        <div className="register-content">
+          {erro && (
+            <p className="login-error" role="alert">
+              {messages[erro] || "Não foi possível criar a conta. Confira os dados e tente novamente."}
+            </p>
+          )}
 
-        <form action={selfRegister} className="login-form">
-          <label htmlFor="name">Nome completo</label>
-          <input id="name" name="name" autoComplete="name" minLength={3} maxLength={160} required />
+          <form action={selfRegister} className="register-form">
+            <div className="register-field register-field-full">
+              <label htmlFor="name">Nome completo</label>
+              <input id="name" name="name" autoComplete="name" minLength={3} maxLength={160} placeholder="Seu nome e sobrenome" required />
+            </div>
 
-          <label htmlFor="email">E-mail</label>
-          <input id="email" name="email" type="email" autoComplete="email" autoCapitalize="none" maxLength={254} required />
+            <div className="register-field register-field-full">
+              <label htmlFor="email">E-mail</label>
+              <input id="email" name="email" type="email" autoComplete="email" autoCapitalize="none" maxLength={254} placeholder="voce@exemplo.com" required />
+            </div>
 
-          <label htmlFor="password">Senha</label>
-          <input id="password" name="password" type="password" autoComplete="new-password" minLength={12} maxLength={72} required />
+            <div className="register-field">
+              <label htmlFor="password">Senha</label>
+              <input id="password" name="password" type="password" autoComplete="new-password" minLength={12} maxLength={72} aria-describedby="password-help" required />
+              <small id="password-help">Use pelo menos 12 caracteres.</small>
+            </div>
 
-          <label htmlFor="confirmPassword">Confirme a senha</label>
-          <input id="confirmPassword" name="confirmPassword" type="password" autoComplete="new-password" minLength={12} maxLength={72} required />
+            <div className="register-field">
+              <label htmlFor="confirmPassword">Confirmar senha</label>
+              <input id="confirmPassword" name="confirmPassword" type="password" autoComplete="new-password" minLength={12} maxLength={72} required />
+            </div>
 
-          <button type="submit" className="login-submit">
-            Solicitar cadastro
-          </button>
-        </form>
-        <p className="login-footnote">
-          A conta começa como catequista e fica bloqueada até a aprovação de um administrador.
-        </p>
-        <p className="login-switch">
-          Já tem conta? <Link href="/login">Entrar</Link>
-        </p>
+            <button type="submit" className="login-submit register-submit">
+              Solicitar acesso
+            </button>
+          </form>
+
+          <section className="register-next" aria-labelledby="register-next-title">
+            <h2 id="register-next-title">Depois do envio</h2>
+            <ol>
+              <li>Um administrador analisará sua solicitação.</li>
+              <li>Após a aprovação, você poderá entrar com estes dados.</li>
+            </ol>
+          </section>
+
+          <p className="login-switch">Já tem uma conta? <Link href="/login">Entrar</Link></p>
+        </div>
       </section>
     </main>
   );
