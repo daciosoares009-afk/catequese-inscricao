@@ -1786,6 +1786,30 @@ button:disabled, .btn:disabled { opacity: .55; cursor: not-allowed; transform: n
   .register-next ol { grid-template-columns: 1fr; gap: 8px; }
 }
 
+/* Bring the parish facade into the login identity while keeping the form clear. */
+.login-showcase {
+  min-height: 300px;
+  padding: 28px 42px 20px;
+  color: #fff;
+  background: #29332e url("/images/igreja-fachada.png") center 54% / cover no-repeat;
+}
+.login-showcase::before {
+  background: linear-gradient(180deg, rgba(12, 17, 15, .58), rgba(12, 17, 15, .38)),
+    repeating-linear-gradient(90deg, transparent 0, transparent calc(25% - 1px), rgba(255,255,255,.08) calc(25% - 1px), rgba(255,255,255,.08) 25%);
+}
+.login-brand { color: #fff; }
+.login-brand small { color: rgba(255,255,255,.82); }
+.login-logo { border-color: rgba(255,255,255,.75); background: #fff; }
+.login-showcase-copy { border-color: rgba(255,255,255,.55); }
+.login-showcase-kicker { color: #fff; }
+.login-showcase-copy h2 { color: #fff; }
+.login-showcase-copy p, .login-showcase-footer { color: rgba(255,255,255,.9); }
+@media (max-width: 760px) {
+  .login-showcase { min-height: 230px; padding: 22px 24px 14px; }
+  .login-showcase-copy { margin-top: 20px; padding: 17px 0 15px; }
+  .login-showcase-copy h2 { margin-top: 10px; }
+}
+
 /* Shared page frame: keep the workspace centered on wide screens. */
 .faith-content {
   width: min(100%, 1400px);
@@ -1839,4 +1863,41 @@ button:disabled, .btn:disabled { opacity: .55; cursor: not-allowed; transform: n
   .faith-welcome h1 { font-size: 36px; }
   .faith-welcome-mark { top: 12px; right: 12px; width: 43px; height: 43px; padding: 3px; border-radius: 10px; }
   .faith-community { min-height: 105px; padding-top: 52px; }
+}
+
+/* Compact, centered sign-in card for desktop and laptop screens. */
+.login-signin-page .login-card { min-height: 0; grid-template-columns: minmax(0, 1fr); }
+.login-page { min-height: 100svh; padding: 22px; }
+.login-card {
+  width: min(100%, 470px);
+  margin: auto;
+  border-radius: 10px;
+  box-shadow: 0 14px 42px rgba(18, 24, 30, .12);
+}
+.login-showcase { min-height: 190px; padding: 18px 28px 10px; }
+.login-logo { width: 38px; height: 38px; flex-basis: 38px; }
+.login-showcase-copy { margin-top: 16px; padding: 12px 0 11px; }
+.login-showcase-copy h2 { max-width: 360px; margin: 9px auto 7px; font-size: clamp(26px, 5vw, 32px); letter-spacing: -1.2px; }
+.login-showcase-copy p { font-size: 11px; }
+.login-showcase-footer { margin-top: 9px; }
+.login-panel { padding: 22px 30px 24px; }
+.login-panel-heading { margin-bottom: 15px; }
+.login-panel h1 { font-size: 27px; }
+.login-description { margin-top: 8px; font-size: 12px; }
+.login-form label { padding-top: 13px; }
+.login-input-wrap input { min-height: 37px; font-size: 13px; }
+.login-submit { min-height: 43px; margin-top: 21px; }
+.login-footnote { margin-top: 13px; }
+.login-switch { margin-top: 16px; }
+.login-secure { margin-top: 20px; }
+.login-page { display: flex; align-items: center; justify-content: center; }
+.login-card { align-self: center; }
+.login-showcase { background-position: center center; }
+@media (max-width: 760px) {
+  .login-page { padding: 16px; }
+  .login-card { width: min(100%, 430px); }
+  .login-showcase { min-height: 174px; padding: 16px 22px 8px; }
+  .login-showcase-copy { margin-top: 12px; padding: 10px 0; }
+  .login-showcase-copy h2 { font-size: clamp(25px, 7vw, 30px); }
+  .login-panel { padding: 20px 23px 23px; }
 }

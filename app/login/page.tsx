@@ -25,7 +25,7 @@ export default async function LoginPage({
       : messages[erro ?? ""] ?? (erro ? "Não foi possível entrar. Tente novamente." : null);
 
   return (
-    <main className="login-page">
+    <main className="login-page login-signin-page">
       <section className="login-card" aria-labelledby="login-title">
         <aside className="login-showcase" aria-label="Paróquia São João Batista">
           <div className="login-brand">
