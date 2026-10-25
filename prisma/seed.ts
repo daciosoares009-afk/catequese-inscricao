@@ -102,12 +102,41 @@ async function main(){
     "Vinicius Evangelista da Silva",
     "Vitória da Silva Tomaz de Aquino"
   ];
+  const youngPeople=[
+    "Giovana M. Picelli",
+    "Isabella Teoposio Michelin",
+    "Antonio Wesley",
+    "Kaique Augusto",
+    "Nicole Cunha",
+    "Gabriele Vigria da Silva Lima",
+    "Felipe Alves",
+    "Laura Miranda Saraiva da Silva",
+    "Vitoria Marreiros de Barros",
+    "Maria Luzia Dias Borges",
+    "Isabella Alencar de Sousa",
+    "Ana Clara Ferreira Rocha"
+  ];
   const students=[];
   for(const p of people){const existing=await prisma.catechumen.findFirst({where:{fullName:p.name,birthDate:new Date(`${p.birth}T12:00:00Z`)}});const student=existing||await prisma.catechumen.create({data:{fullName:p.name,birthDate:new Date(`${p.birth}T12:00:00Z`),status:"ACTIVE",parishId:parish.id,communityId:p.communityId,city:"Fortaleza",joinedAt:new Date("2026-02-01T12:00:00Z"),qrCode:{create:createQrCodeToken()}}});const guardian=await prisma.guardian.upsert({where:{cpf:`SEED-${p.phone}`},update:{},create:{fullName:p.guardian,cpf:`SEED-${p.phone}`,phone:p.phone,whatsapp:p.phone,allowMessages:true}});await prisma.catechumenGuardian.upsert({where:{catechumenId_guardianId:{catechumenId:student.id,guardianId:guardian.id}},update:{},create:{catechumenId:student.id,guardianId:guardian.id,relationship:"Responsável",isPrimary:true,isEmergency:true}});await prisma.enrollment.upsert({where:{catechumenId_classId:{catechumenId:student.id,classId:p.classId}},update:{status:"ACTIVE"},create:{catechumenId:student.id,classId:p.classId}});students.push(student)}
   for(const name of adultPeople){
     const existing=await prisma.catechumen.findFirst({where:{fullName:{equals:name,mode:"insensitive"},deletedAt:null}});
     const student=existing || await prisma.catechumen.create({data:{fullName:name,status:"ACTIVE",parishId:parish.id,communityId:matriz.id,city:"Osasco",joinedAt:new Date("2026-02-01T12:00:00Z"),qrCode:{create:createQrCodeToken()}}});
     await prisma.enrollment.upsert({where:{catechumenId_classId:{catechumenId:student.id,classId:clsAdult.id}},update:{status:"ACTIVE"},create:{catechumenId:student.id,classId:clsAdult.id}});
+  }
+  for(const name of youngPeople){
+    await prisma.$transaction(async tx=>{
+      const existing=await tx.catechumen.findFirst({where:{fullName:{equals:name,mode:"insensitive"},deletedAt:null},include:{qrCode:true}});
+      const student=existing || await tx.catechumen.create({data:{fullName:name,status:"ACTIVE",parishId:parish.id,communityId:fatima.id,city:"Osasco",joinedAt:new Date("2026-02-01T12:00:00Z"),qrCode:{create:createQrCodeToken()}}});
+      if(existing){
+        await tx.catechumen.update({where:{id:student.id},data:{status:"ACTIVE"}});
+        if(!existing.qrCode || !existing.qrCode.active || existing.qrCode.expiresAt<=new Date()){
+          const qrCode=createQrCodeToken();
+          await tx.qRCodeToken.upsert({where:{catechumenId:student.id},create:{catechumenId:student.id,...qrCode},update:{...qrCode,active:true}});
+        }
+      }
+      await tx.enrollment.updateMany({where:{catechumenId:student.id,status:"ACTIVE",classId:{not:cls2.id}},data:{status:"TRANSFERRED",endedAt:new Date()}});
+      await tx.enrollment.upsert({where:{catechumenId_classId:{catechumenId:student.id,classId:cls2.id}},update:{status:"ACTIVE",endedAt:null,deletedAt:null},create:{catechumenId:student.id,classId:cls2.id}});
+    });
   }
   const meeting=await prisma.meeting.findFirst({where:{classId:cls1.id,theme:"Jesus nos reúne"}})||await prisma.meeting.create({data:{classId:cls1.id,date:new Date("2026-07-18T12:00:00Z"),startTime:"09:00",endTime:"10:30",theme:"Jesus nos reúne",content:"A comunidade como família de fé",responsibleId:cat1.id,status:"CLOSED"}});
   await prisma.meeting.findFirst({where:{classId:cls1.id,theme:"A Palavra de Deus"}})||await prisma.meeting.create({data:{classId:cls1.id,date:new Date("2026-07-25T12:00:00Z"),startTime:"09:00",endTime:"10:30",theme:"A Palavra de Deus",responsibleId:cat1.id,status:"SCHEDULED"}});
