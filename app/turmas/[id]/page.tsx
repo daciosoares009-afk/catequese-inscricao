@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BookOpen, CalendarDays, Clock3, MapPin, UserPlus, Users } from "lucide-react";
+import { BookOpen, CalendarDays, Clock3, Download, MapPin, UserPlus, Users } from "lucide-react";
 import AppShell from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
@@ -41,7 +41,7 @@ export default async function ClassDetailPage({ params, searchParams }: { params
   const upcoming = item.meetings.filter(meeting => meeting.date >= new Date() && ["SCHEDULED", "IN_PROGRESS"].includes(meeting.status)).sort((a, b) => a.date.getTime() - b.date.getTime());
 
   return <AppShell current="/turmas">
-    <PageHeader title={item.name} description={`${item.sacrament.name} · ${item.stage.name} · ${item.year}`} action={<div className="page-action-group"><Link href={`/encontros?turma=${item.id}&novo=1`} className="btn btn-secondary">+ Encontro</Link>{canManage && <Link href={`/turmas/${id}?equipe=1`} className="btn btn-secondary"><UserPlus size={15} /> Catequista</Link>}{canManage && <Link href={`/turmas/${id}?matricular=1`} className="btn btn-primary">+ Matricular</Link>}</div>} />
+    <PageHeader title={item.name} description={`${item.sacrament.name} · ${item.stage.name} · ${item.year}`} action={<div className="page-action-group"><a href={`/api/turmas/${id}/qr-pdf`} className="btn btn-secondary" download><Download size={15} /> QR Codes dos alunos</a><Link href={`/encontros?turma=${item.id}&novo=1`} className="btn btn-secondary">+ Encontro</Link>{canManage && <Link href={`/turmas/${id}?equipe=1`} className="btn btn-secondary"><UserPlus size={15} /> Catequista</Link>}{canManage && <Link href={`/turmas/${id}?matricular=1`} className="btn btn-primary">+ Matricular</Link>}</div>} />
     {query.erro && <div className="alert error" role="alert">{query.erro === "turma-lotada" ? "A turma atingiu o limite de catequizandos." : query.erro === "catequista" ? "Não foi possível atribuir o catequista." : "Não foi possível concluir a matrícula."}</div>}
     {query.sucesso && <div className="alert success" role="status">Equipe pastoral atualizada com sucesso.</div>}
 
