@@ -70,7 +70,6 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
 
     setStatus("requesting");
     try {
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       const video = videoRef.current;
       if (!video) throw new Error("VIDEO_NOT_READY");
 
@@ -106,7 +105,6 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
       );
 
       controlsRef.current = controls;
-      await video.play();
       setStatus("scanning");
     } catch (error) {
       const name = error instanceof DOMException ? error.name : "";
@@ -209,40 +207,42 @@ export function QrCameraReader({ meetingId }: { meetingId: string }) {
         <input ref={tokenRef} type="hidden" name="token" />
       </form>
 
-      {cameraOpen && (
-        <div className="qr-camera-stage" aria-live="polite">
-          <video
-            ref={videoRef}
-            className="qr-camera-video"
-            muted
-            playsInline
-            aria-label="Imagem da câmera para leitura do QR Code"
-          />
-          <div className="qr-camera-mask" aria-hidden="true">
-            <span />
-          </div>
-          <div className="qr-camera-status">
-            {status === "requesting" && (
-              <>
-                <LoaderCircle className="spin" size={16} />
-                Autorize o acesso à câmera no aviso do navegador.
-              </>
-            )}
-            {status === "scanning" && (
-              <>
-                <ScanLine size={16} />
-                Posicione o QR Code dentro do quadrado.
-              </>
-            )}
-            {status === "submitting" && (
-              <>
-                <LoaderCircle className="spin" size={16} />
-                Registrando presença…
-              </>
-            )}
-          </div>
+      <div
+        className="qr-camera-stage"
+        aria-live="polite"
+        style={{ display: cameraOpen ? undefined : "none" }}
+      >
+        <video
+          ref={videoRef}
+          className="qr-camera-video"
+          muted
+          playsInline
+          aria-label="Imagem da câmera para leitura do QR Code"
+        />
+        <div className="qr-camera-mask" aria-hidden="true">
+          <span />
         </div>
-      )}
+        <div className="qr-camera-status">
+          {status === "requesting" && (
+            <>
+              <LoaderCircle className="spin" size={16} />
+              Autorize o acesso à câmera no aviso do navegador.
+            </>
+          )}
+          {status === "scanning" && (
+            <>
+              <ScanLine size={16} />
+              Posicione o QR Code dentro do quadrado.
+            </>
+          )}
+          {status === "submitting" && (
+            <>
+              <LoaderCircle className="spin" size={16} />
+              Registrando presença…
+            </>
+          )}
+        </div>
+      </div>
 
       {message && (
         <div
