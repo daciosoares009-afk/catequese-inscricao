@@ -52,6 +52,22 @@ prefixadas com `NEXT_PUBLIC_`.
 5. Carregue os dados iniciais com `npm run db:seed`.
 6. Inicie com `npm run dev` e abra `http://localhost:3000`.
 
+## Aplicativo instalável (PWA)
+
+O PSJB-Crisma pode ser instalado pela opção **Instalar aplicativo**, disponível
+no menu do sistema e na tela de login. O site deve estar publicado em HTTPS
+(localhost também é aceito para desenvolvimento).
+
+- **Android:** abra o endereço no Chrome, toque em **⋮** e escolha
+  **Instalar app** ou **Adicionar à tela inicial**.
+- **iPhone/iPad:** abra o endereço no Safari, toque em **Compartilhar** e
+  escolha **Adicionar à Tela de Início**. A instalação no iOS deve ser feita
+  pelo Safari.
+
+O service worker guarda somente recursos estáticos e uma tela offline
+informativa. Páginas autenticadas, formulários e dados pessoais não são
+armazenados para uso offline.
+
 Antes de publicar, execute `npm test`, `npm run typecheck`, `npm run lint` e
 `npm run build`.
 

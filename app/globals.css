@@ -1963,3 +1963,43 @@ img, svg, video, canvas { max-width: 100%; }
   .mobile-nav span { font-size: 7px; }
   .faith-welcome h1 { font-size: 31px; }
 }
+
+.pwa-install-guide {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.pwa-install-heading { display: flex; align-items: flex-start; gap: 15px; }
+.pwa-install-icon { width: 46px; height: 46px; flex: 0 0 46px; display: grid; place-items: center; color: var(--navy); border-radius: 14px; background: var(--gold-soft); }
+.pwa-install-heading .page-kicker { margin: 0 0 5px; }
+.pwa-install-heading h2 { margin: 0; color: var(--navy); font: 600 23px/1.2 Georgia, "Times New Roman", serif; }
+.pwa-install-heading p { margin: 7px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.pwa-native-install { margin-top: 21px; }
+.pwa-install-hint, .pwa-installed-status, .pwa-desktop-hint { display: flex; align-items: flex-start; gap: 8px; color: #536873; font-size: 12px; line-height: 1.5; }
+.pwa-install-hint { margin: 20px 0 0; }
+.pwa-install-hint svg, .pwa-installed-status svg, .pwa-desktop-hint svg { flex: 0 0 auto; margin-top: 1px; }
+.pwa-installed-status { align-items: center; margin: 20px 0 0; color: var(--success); font-weight: 700; }
+.pwa-platform-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 21px; }
+.pwa-platform-card { padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: #fbfcfc; }
+.pwa-platform-title { display: flex; align-items: center; gap: 9px; color: var(--blue); }
+.pwa-platform-title h3 { margin: 0; color: var(--navy); font-size: 14px; }
+.pwa-platform-card ol { display: grid; gap: 9px; margin: 15px 0 0; padding-left: 19px; color: #536873; font-size: 12px; line-height: 1.55; }
+.pwa-platform-card li { padding-left: 2px; }
+.pwa-platform-card li strong { color: var(--navy); }
+.pwa-platform-card li svg { display: inline; vertical-align: -2px; }
+.pwa-platform-card > p { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.pwa-desktop-hint { margin: 18px 0 0; color: var(--muted); }
+.login-install-link { margin: 12px 0 0; text-align: center; font-size: 12px; }
+.login-install-link a { color: var(--blue); font-weight: 700; text-decoration: none; }
+.login-install-link a:hover { text-decoration: underline; }
+
+@media (max-width: 620px) {
+  .pwa-install-guide { padding: 19px; }
+  .pwa-install-heading h2 { font-size: 20px; }
+  .pwa-platform-grid { grid-template-columns: 1fr; }
+  .pwa-native-install { width: 100%; justify-content: center; }
+}

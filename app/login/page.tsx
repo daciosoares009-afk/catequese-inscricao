@@ -75,6 +75,7 @@ export default async function LoginPage({
             </button>
           </form>
           <p className="login-footnote">O acesso às contas novas depende da aprovação de um administrador.</p>
+          <p className="login-install-link"><Link href="/instalar">Instalar no celular</Link></p>
           <p className="login-switch">Ainda não tem acesso? <Link href="/cadastro">Solicitar cadastro</Link></p>
           <p className="login-secure">Ambiente restrito à equipe pastoral</p>
         </div>

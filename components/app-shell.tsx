@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
+  Download,
   Home,
   LayoutDashboard,
   LogOut,
@@ -44,6 +45,7 @@ const links: NavItem[] = [
   { href: "/presencas", label: "Frequência", icon: ClipboardCheck, roles: allRoles },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3, roles: managementRoles },
   { href: "/notificacoes", label: "Notificações", icon: Bell, roles: allRoles },
+  { href: "/instalar", label: "Instalar aplicativo", icon: Download, roles: allRoles },
   { href: "/auditoria", label: "Auditoria", icon: QrCode, roles: ["ADMIN"] },
   { href: "/configuracoes", label: "Configurações", icon: Settings, roles: allRoles },
 ];
