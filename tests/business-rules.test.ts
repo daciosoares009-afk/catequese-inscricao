@@ -24,9 +24,10 @@ test("status e método arbitrários são rejeitados", () => {
 });
 
 test("turma valida capacidade, dia e horário", () => {
-  const base = { name: "Eucaristia I", year: 2026, parishId: "p", communityId: "c", sacramentId: "s", stageId: "e", weekday: 6, startTime: "09:00", location: "Sala 1", startsAt: "2026-02-01", expectedEndAt: "", capacity: 25, status: "ACTIVE" };
+  const base = { name: "Eucaristia I", year: 2026, parishId: "p", communityId: "c", sacramentId: "s", stageId: "e", weekday: 6, startTime: "09:00", location: "Sala 1", startsAt: "2026-02-01", expectedEndAt: "", capacity: 100, status: "ACTIVE" };
   assert.equal(classSchema.safeParse(base).success, true);
   assert.equal(classSchema.safeParse({ ...base, capacity: 0 }).success, false);
+  assert.equal(classSchema.safeParse({ ...base, capacity: 501 }).success, false);
   assert.equal(classSchema.safeParse({ ...base, weekday: 8 }).success, false);
 });
 

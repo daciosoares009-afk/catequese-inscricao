@@ -1901,3 +1901,65 @@ button:disabled, .btn:disabled { opacity: .55; cursor: not-allowed; transform: n
   .login-showcase-copy h2 { font-size: clamp(25px, 7vw, 30px); }
   .login-panel { padding: 20px 23px 23px; }
 }
+
+/* Shared responsive guardrails for every route. */
+html, body { max-width: 100%; overflow-x: clip; }
+img, svg, video, canvas { max-width: 100%; }
+.main, .faith-main, .content, .faith-content, .card, .form-card, .toolbar, .page-head { min-width: 0; }
+.table-wrap { max-width: 100%; overscroll-behavior-inline: contain; -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 1024px) {
+  .page-head { align-items: flex-start; }
+  .page-head > div:first-child, .page-head p { min-width: 0; }
+  .toolbar > *, .dashboard-commandbar > *, .page-action-group > * { min-width: 0; }
+  .profile-grid, .dashboard-grid, .report-grid, .class-detail-grid, .student-profile-layout { min-width: 0; }
+  .print-card { max-width: 100%; min-width: 0; }
+}
+
+@media (max-width: 780px) {
+  .faith-topbar { padding-inline: 14px; }
+  .topbar-title { min-width: 0; }
+  .topbar-title > div { min-width: 0; }
+  .faith-topbar .topbar-title strong, .faith-topbar .topbar-title small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top-actions { gap: 6px; }
+  .faith-role { display: none; }
+  .content, .faith-content { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+  .card-head { flex-wrap: wrap; }
+  .card-head > * { min-width: 0; }
+  .page-action, .page-action-group { max-width: 100%; }
+  .page-action-group { justify-content: flex-start; }
+  .form-actions { flex-wrap: wrap; }
+  .form-actions > * { min-width: 0; }
+  .tabs { scrollbar-width: thin; }
+  .tabs::-webkit-scrollbar { height: 4px; }
+  .table { min-width: max-content; }
+  .table th, .table td { white-space: nowrap; }
+}
+
+@media (max-width: 620px) {
+  .page-head { gap: 11px; }
+  .page-head p { max-width: 100%; }
+  .toolbar { padding: 7px; }
+  .toolbar .btn, .toolbar > a.btn, .toolbar > form { width: 100%; }
+  .toolbar > form .btn { width: 100%; }
+  .form-actions { display: grid; grid-template-columns: 1fr; }
+  .form-actions .btn, .form-actions button { width: 100%; }
+  .checkbox { align-items: flex-start; }
+  .checkbox input { flex: 0 0 auto; margin-top: 1px; }
+  .list-row { align-items: flex-start; flex-wrap: wrap; }
+  .list-row > :last-child:not(.grow) { margin-left: auto; }
+  .qr-download-card { padding: 24px 16px; }
+  .qr-download-card img { max-width: 100%; height: auto; }
+  .print-card { padding: 18px; }
+  .print-card-grid { grid-template-columns: 1fr; text-align: center; }
+}
+
+@media (max-width: 420px) {
+  .topbar, .faith-topbar { padding-inline: 11px; }
+  .top-actions .notification-btn { width: 36px; height: 36px; }
+  .page-head h1 { font-size: 25px; }
+  .card-head, .card-body, .form-card { padding-inline: 14px; }
+  .mobile-nav a, .mobile-nav button { min-width: 0; flex: 1; }
+  .mobile-nav span { font-size: 7px; }
+  .faith-welcome h1 { font-size: 31px; }
+}

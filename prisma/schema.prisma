@@ -252,7 +252,7 @@ model Class {
   location      String
   startsAt      DateTime
   expectedEndAt DateTime?
-  capacity      Int              @default(25)
+  capacity      Int              @default(100)
   status        ClassStatus      @default(PLANNED)
   parish        Parish           @relation(fields: [parishId], references: [id])
   community     Community        @relation(fields: [communityId], references: [id])
