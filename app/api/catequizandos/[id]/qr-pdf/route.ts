@@ -48,6 +48,19 @@ export async function GET(
   pdf.text(nameLines, pageWidth / 2, 25, { align: "center" });
   pdf.addImage(qrDataUrl, "PNG", (pageWidth - 62) / 2, 38 + nameHeight, 62, 62);
 
+  const footerY = 38 + nameHeight + 62 + 10;
+  pdf.setTextColor(18, 57, 95);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(8);
+  pdf.text("PSJB - CRISMA 2026", pageWidth / 2, footerY, { align: "center" });
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(6.2);
+  const footerVerseLines = pdf.splitTextToSize(
+    "Ide por todo o mundo e pregai o evangelho a toda criatura. (Mc 16:15)",
+    82,
+  );
+  pdf.text(footerVerseLines, pageWidth / 2, footerY + 7, { align: "center" });
+
   const fileName =
     item.fullName
       .normalize("NFD")

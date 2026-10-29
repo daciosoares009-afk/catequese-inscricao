@@ -120,6 +120,22 @@ export async function GET(
       qrSize,
       qrSize,
     );
+
+    const footerY = qrY + qrSize + 5;
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(6.8);
+    pdf.text("PSJB - CRISMA 2026", x + cardWidth / 2, footerY, {
+      align: "center",
+    });
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(5.2);
+    const footerVerseLines = pdf.splitTextToSize(
+      "Ide por todo o mundo e pregai o evangelho a toda criatura. (Mc 16:15)",
+      cardWidth - 8,
+    );
+    pdf.text(footerVerseLines, x + cardWidth / 2, footerY + 5, {
+      align: "center",
+    });
   });
 
   const fileName =
