@@ -11,7 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 import { catechistClassFilter } from "@/lib/access";
 import { formatDate } from "@/lib/format";
-import { cancelMeeting, createMeeting, reopenMeeting } from "./actions";
+import { cancelMeeting, createMeeting, deleteMeeting, reopenMeeting } from "./actions";
 
 export const dynamic = "force-dynamic";
 const allowedStatuses: MeetingStatus[] = ["SCHEDULED", "IN_PROGRESS", "CLOSED", "CANCELLED"];
@@ -36,7 +36,7 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
   return <AppShell current="/encontros">
     <PageHeader title="Encontros" description="Planeje conteúdos, acompanhe a agenda e abra a chamada" action={<Link className="btn btn-primary" href={`/encontros?novo=1${query.turma ? `&turma=${query.turma}` : ""}`}>+ Novo encontro</Link>} />
     {query.erro && <div className="alert error" role="alert">{query.erro === "sem-permissao" ? "Você não está vinculado a esta turma." : query.erro === "encerrado" ? "Encontros encerrados não podem ser cancelados." : "Revise os dados ou a situação do encontro."}</div>}
-    {query.sucesso && <div className="alert success" role="status">Operação concluída com sucesso.</div>}
+    {query.sucesso && <div className="alert success" role="status">{query.sucesso === "excluido" ? "Encontro excluído com sucesso." : "Operação concluída com sucesso."}</div>}
 
     <form className="toolbar filter-bar" aria-label="Filtros de encontros">
       <div className="filter-field"><label htmlFor="meeting-class">Turma</label><select id="meeting-class" name="turma" defaultValue={query.turma || ""}><option value="">Todas as turmas</option>{classes.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></div>
@@ -62,7 +62,7 @@ export default async function MeetingsPage({ searchParams }: { searchParams: Pro
     {!!meetings.length && <section className="meeting-calendar" aria-label="Calendário de encontros">{meetings.slice(0, 12).map(meeting => <Link href={`/presencas/${meeting.id}`} key={meeting.id} className={`meeting-calendar-item status-${meeting.status.toLowerCase()}`}><time dateTime={meeting.date.toISOString()}><strong>{String(meeting.date.getUTCDate()).padStart(2, "0")}</strong><span>{meeting.date.toLocaleDateString("pt-BR", { month: "short", timeZone: "UTC" }).replace(".", "")}</span></time><div><strong>{meeting.theme}</strong><small>{meeting.class.name} · {meeting.startTime}</small></div><StatusBadge status={meeting.status} /></Link>)}</section>}
 
     <section className="card table-wrap"><table className="table"><thead><tr><th>Encontro</th><th>Turma</th><th>Data e hora</th><th>Responsável</th><th>Registros</th><th>Status</th><th>Ações</th></tr></thead><tbody>
-      {meetings.map(meeting => <tr key={meeting.id}><td><div className="person"><div className="stat-icon"><CalendarDays size={15} /></div><strong>{meeting.theme}</strong></div></td><td>{meeting.class.name}</td><td>{formatDate(meeting.date)} às {meeting.startTime}</td><td>{meeting.responsible.name}</td><td>{meeting._count.attendances}</td><td><StatusBadge status={meeting.status} /></td><td><div className="row-actions"><Link className="btn btn-secondary" href={`/presencas/${meeting.id}`}>Abrir chamada</Link>{session.role !== "CATECHIST" && ["SCHEDULED", "IN_PROGRESS"].includes(meeting.status) && <form action={cancelMeeting.bind(null, meeting.id)}><ConfirmSubmitButton message={`Cancelar o encontro “${meeting.theme}”?`}>Cancelar</ConfirmSubmitButton></form>}{session.role !== "CATECHIST" && ["CLOSED", "CANCELLED"].includes(meeting.status) && <form action={reopenMeeting.bind(null, meeting.id)}><SubmitButton className="btn btn-secondary" pendingLabel="Reabrindo...">Reabrir</SubmitButton></form>}</div></td></tr>)}
+      {meetings.map(meeting => <tr key={meeting.id}><td><div className="person"><div className="stat-icon"><CalendarDays size={15} /></div><strong>{meeting.theme}</strong></div></td><td>{meeting.class.name}</td><td>{formatDate(meeting.date)} às {meeting.startTime}</td><td>{meeting.responsible.name}</td><td>{meeting._count.attendances}</td><td><StatusBadge status={meeting.status} /></td><td><div className="row-actions"><Link className="btn btn-secondary" href={`/presencas/${meeting.id}`}>Abrir chamada</Link>{session.role !== "CATECHIST" && ["SCHEDULED", "IN_PROGRESS"].includes(meeting.status) && <form action={cancelMeeting.bind(null, meeting.id)}><ConfirmSubmitButton message={`Cancelar o encontro “${meeting.theme}”?`}>Cancelar</ConfirmSubmitButton></form>}{session.role !== "CATECHIST" && ["CLOSED", "CANCELLED"].includes(meeting.status) && <form action={reopenMeeting.bind(null, meeting.id)}><SubmitButton className="btn btn-secondary" pendingLabel="Reabrindo...">Reabrir</SubmitButton></form>}{session.role !== "CATECHIST" && <form action={deleteMeeting.bind(null, meeting.id)}><ConfirmSubmitButton className="btn btn-secondary" message={`Excluir permanentemente o encontro “${meeting.theme}”?`}>Excluir</ConfirmSubmitButton></form>}</div></td></tr>)}
     </tbody></table>{!meetings.length && <EmptyState icon={CalendarDays} title="Nenhum encontro encontrado" description="Ajuste os filtros ou planeje um novo encontro." action={<Link href="/encontros?novo=1" className="btn btn-primary">Novo encontro</Link>} />}</section>
   </AppShell>;
 }

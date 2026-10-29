@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 import { canAccessClass } from "@/lib/access";
 import { formatDate } from "@/lib/format";
-import { closeMeeting } from "@/app/encontros/actions";
+import { closeMeeting, deleteMeeting } from "@/app/encontros/actions";
 import { markAllPresent, recordAttendance } from "../actions";
 import { QrCameraReader } from "@/components/qr-camera-reader";
 
@@ -34,7 +34,7 @@ export default async function AttendancePage({ params, searchParams }: { params:
   const errors: Record<string, string> = { "qr-invalido": "QR Code inválido, expirado ou desativado.", "qr-ja-registrado": "Este catequizando já tem um registro neste encontro. Use a chamada manual para corrigir a presença.", "nao-matriculado": "Catequizando não está matriculado nesta turma.", encerrado: "O encontro está encerrado para alterações.", permissao: "Operação não permitida.", "dados-invalidos": "Status ou justificativa inválidos.", "justificativa-obrigatoria": "Informe uma justificativa para corrigir o registro.", cancelado: "Encontros cancelados não podem ser alterados." };
 
   return <AppShell current="/presencas">
-    <PageHeader eyebrow="Frequência" title="Chamada do encontro" description={`${meeting.theme} · ${meeting.class.name} · ${formatDate(meeting.date)} às ${meeting.startTime}`} action={meeting.status === "CANCELLED" ? <StatusBadge status="CANCELLED" /> : meeting.status !== "CLOSED" ? <form action={closeMeeting.bind(null, id)}><ConfirmSubmitButton message={pending ? `Ainda existem ${pending} registro(s) pendente(s). Ao encerrar, serão marcados como falta. Deseja continuar?` : "Finalizar a chamada deste encontro?"} pendingLabel="Encerrando...">Encerrar chamada</ConfirmSubmitButton></form> : <StatusBadge status="CLOSED" />} />
+    <PageHeader eyebrow="Frequência" title="Chamada do encontro" description={`${meeting.theme} · ${meeting.class.name} · ${formatDate(meeting.date)} às ${meeting.startTime}`} action={<div className="page-action-group">{meeting.status === "CANCELLED" ? <StatusBadge status="CANCELLED" /> : meeting.status !== "CLOSED" ? <form action={closeMeeting.bind(null, id)}><ConfirmSubmitButton message={pending ? `Ainda existem ${pending} registro(s) pendente(s). Ao encerrar, serão marcados como falta. Deseja continuar?` : "Finalizar a chamada deste encontro?"} pendingLabel="Encerrando...">Encerrar chamada</ConfirmSubmitButton></form> : <StatusBadge status="CLOSED" />}{session.role !== "CATECHIST" && <form action={deleteMeeting.bind(null, id)}><ConfirmSubmitButton className="btn btn-secondary" message={`Excluir permanentemente o encontro “${meeting.theme}”?`}>Excluir encontro</ConfirmSubmitButton></form>}</div>} />
     {query.sucesso && <div className="alert success attendance-feedback" role="status"><CheckCircle2 size={17} />{query.sucesso === "turma" ? "Todos os catequizandos foram marcados como presentes." : <>QR code lido com sucesso. Presença de {query.sucesso} confirmada.</>}</div>}
     {query.erro && <div className="alert error" role="alert"><AlertCircle size={17} />{errors[query.erro] || "Não foi possível concluir a operação."}</div>}
 

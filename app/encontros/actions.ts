@@ -121,3 +121,33 @@ export async function reopenMeeting(id: string) {
   revalidatePath("/encontros");
   redirect(`/presencas/${id}`);
 }
+
+export async function deleteMeeting(id: string) {
+  const session = await requireSession(["ADMIN", "COORDINATOR"]);
+  const meeting = await prisma.meeting.findFirst({
+    where: { id, deletedAt: null },
+    select: { id: true, classId: true, theme: true, status: true },
+  });
+  if (!meeting || !(await canAccessClass(session, meeting.classId))) {
+    redirect("/encontros?erro=sem-permissao");
+  }
+
+  await prisma.$transaction([
+    prisma.meeting.update({
+      where: { id },
+      data: { deletedAt: new Date(), status: "CANCELLED" },
+    }),
+    prisma.auditLog.create({
+      data: {
+        userId: session.userId,
+        action: "SOFT_DELETE",
+        entity: "Meeting",
+        entityId: id,
+        before: { theme: meeting.theme, status: meeting.status },
+        after: { deletedAt: new Date().toISOString(), status: "CANCELLED" },
+      },
+    }),
+  ]);
+  revalidatePath("/encontros");
+  redirect("/encontros?sucesso=excluido");
+}
