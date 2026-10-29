@@ -30,6 +30,13 @@ export async function GET(
     include: {
       class: {
         include: {
+          catechists: {
+            include: {
+              catechist: {
+                include: { user: { select: { name: true } } },
+              },
+            },
+          },
           enrollments: {
             where: { status: "ACTIVE", deletedAt: null },
             include: { catechumen: { select: { fullName: true } } },
@@ -46,6 +53,12 @@ export async function GET(
     return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
   }
 
+  const catechistNames = [...new Set(
+    meeting.class.catechists
+      .map(({ catechist }) => catechist.user.name)
+      .filter(Boolean),
+  )];
+  const catechistLabel = catechistNames.length ? catechistNames.join(", ") : "não informado";
   const records = new Map(meeting.attendances.map(record => [record.catechumenId, record]));
   const rows = meeting.class.enrollments.map(enrollment => ({
     name: enrollment.catechumen.fullName,
@@ -78,10 +91,11 @@ export async function GET(
     pdf.setTextColor(75, 84, 78);
     pdf.text(meeting.theme, margin, 24);
     pdf.text(`${meeting.class.name} · ${meeting.date.toLocaleDateString("pt-BR", { timeZone: "UTC" })} · ${meeting.startTime}`, margin, 30);
+    pdf.text(`Catequista: ${catechistLabel}`, margin, 36);
     pdf.text(
       `${rows.length} catequizando(s) · ${present} presente(s) · ${absent} falta(s) · ${justified} justificado(s) · ${pending} pendente(s)`,
       margin,
-      36,
+      42,
     );
     if (pageNumber > 1) {
       pdf.setFontSize(8);
@@ -105,7 +119,7 @@ export async function GET(
 
   let pageNumber = 1;
   drawHeader(pageNumber);
-  let y = drawTableHeader(42);
+  let y = drawTableHeader(48);
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(8);
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
@@ -122,7 +136,7 @@ export async function GET(
       pdf.addPage();
       pageNumber += 1;
       drawHeader(pageNumber);
-      y = drawTableHeader(42);
+      y = drawTableHeader(48);
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(8);
     }

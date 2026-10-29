@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   const search = params.get("q") || undefined;
   const classScope = catechistClassFilter(session);
   const date = start || end ? { gte: start, lte: end } : undefined;
-  const [enrollments, attendances] = await Promise.all([
+  const [enrollments, attendances, selectedClass] = await Promise.all([
     prisma.enrollment.findMany({
       where: {
         status: "ACTIVE",
@@ -59,7 +59,35 @@ export async function GET(request: NextRequest) {
       },
       select: { catechumenId: true, classId: true, status: true },
     }),
+    classId
+      ? prisma.class.findFirst({
+        where: { id: classId, deletedAt: null, ...classScope },
+        select: {
+          name: true,
+          catechists: {
+            include: {
+              catechist: {
+                include: { user: { select: { name: true } } },
+              },
+            },
+          },
+        },
+      })
+      : null,
   ]);
+
+  const catechistNames = selectedClass
+    ? [...new Set(
+      selectedClass.catechists
+        .map(({ catechist }) => catechist.user.name)
+        .filter(Boolean),
+    )]
+    : [];
+  const catechistLabel = selectedClass
+    ? catechistNames.length
+      ? catechistNames.join(", ")
+      : "não informado"
+    : "todas as turmas";
 
   const rows = enrollments.map(enrollment => {
     const records = attendances.filter(
@@ -104,10 +132,11 @@ export async function GET(request: NextRequest) {
       ? `Período: ${start ? start.toLocaleDateString("pt-BR", { timeZone: "UTC" }) : "início"} a ${end ? end.toLocaleDateString("pt-BR", { timeZone: "UTC" }) : "hoje"}`
       : "Período: todos os encontros encerrados";
     pdf.text(period, margin, 24);
+    pdf.text(`Catequista: ${catechistLabel}`, margin, 30);
     pdf.text(
       `${rows.length} catequizando(s) · Frequência geral: ${overall.rate}% · ${overall.total} registro(s)`,
       margin,
-      30,
+      36,
     );
     if (pageNumber > 1) {
       pdf.setFontSize(8);
@@ -131,7 +160,7 @@ export async function GET(request: NextRequest) {
 
   let pageNumber = 1;
   drawPageHeader(pageNumber);
-  let y = drawTableHeader(36);
+  let y = drawTableHeader(42);
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(8);
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
@@ -157,7 +186,7 @@ export async function GET(request: NextRequest) {
       pdf.addPage();
       pageNumber += 1;
       drawPageHeader(pageNumber);
-      y = drawTableHeader(36);
+      y = drawTableHeader(42);
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(8);
     }
