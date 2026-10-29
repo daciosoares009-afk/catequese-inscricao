@@ -85,7 +85,7 @@ export async function GET(
   const columns = 2;
   const rowsPerPage = 3;
   const cardWidth = 92;
-  const cardHeight = 88;
+  const cardHeight = 96;
   const columnGap = 6;
   const rowGap = 5;
   const leftMargin = 10;
@@ -100,7 +100,7 @@ export async function GET(
     const x = leftMargin + column * (cardWidth + columnGap);
     const y = topMargin + row * (cardHeight + rowGap);
     const nameLines = pdf.splitTextToSize(fullName, cardWidth - 10);
-    const qrSize = 40;
+    const qrSize = 38;
     const qrY = y + 18 + nameLines.length * 5;
 
     pdf.setDrawColor(197, 211, 225);
@@ -121,7 +121,7 @@ export async function GET(
       qrSize,
     );
 
-    const footerY = qrY + qrSize + 5;
+    const footerY = qrY + qrSize + 4;
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(6.8);
     pdf.text("PSJB - CRISMA 2026", x + cardWidth / 2, footerY, {
@@ -135,6 +135,7 @@ export async function GET(
     );
     pdf.text(footerVerseLines, x + cardWidth / 2, footerY + 5, {
       align: "center",
+      lineHeightFactor: 1.1,
     });
   });
 
